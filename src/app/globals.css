@@ -1,0 +1,273 @@
+@import "tailwindcss";
+
+:root {
+  /* Warm Kitchen Design System */
+  --radius: 0.75rem;
+
+  /* Warm Kitchen Color Palette - Using HSL for better compatibility */
+  --background: 45 23% 97%; /* Warm cream/parchment */
+  --foreground: 45 23% 12%; /* Dark brown */
+  --card: 45 15% 99%; /* Pure cream */
+  --card-foreground: 45 23% 12%;
+  --popover: 45 15% 99%;
+  --popover-foreground: 45 23% 12%;
+
+  /* Primary - Deep Paprika */
+  --primary: 25 54% 48%; /* Deep paprika red */
+  --primary-foreground: 0 0% 98%;
+
+  /* Secondary - Sage Green */
+  --secondary: 84 22% 56%; /* Sage green */
+  --secondary-foreground: 84 22% 15%;
+
+  /* Accent - Turmeric Gold */
+  --accent: 45 93% 58%; /* Warm turmeric gold */
+  --accent-foreground: 45 93% 15%;
+
+  /* Muted - Light Mushroom */
+  --muted: 30 8% 85%; /* Light mushroom */
+  --muted-foreground: 30 8% 40%;
+
+  --destructive: 9 75% 62%; /* Warm red for errors */
+  --destructive-foreground: 0 0% 98%;
+  --border: 30 6% 90%; /* Soft cream border */
+  --input: 30 6% 94%; /* Light input background */
+  --ring: 25 54% 48%; /* Paprika focus ring */
+
+  /* Chart Colors */
+  --chart-1: 25 54% 48%; /* Paprika */
+  --chart-2: 84 22% 56%; /* Sage */
+  --chart-3: 45 93% 58%; /* Turmeric */
+  --chart-4: 75 35% 65%; /* Olive oil */
+  --chart-5: 35 75% 70%; /* Caramel */
+}
+
+.dark {
+  /* Dark Warm Kitchen - Cozy Evening Kitchen */
+  --background: 25 15% 12%; /* Deep charcoal brown */
+  --foreground: 45 15% 95%; /* Warm cream text */
+  --card: 25 20% 15%; /* Dark brown cards */
+  --card-foreground: 45 15% 95%;
+  --popover: 25 20% 15%;
+  --popover-foreground: 45 15% 95%;
+
+  /* Primary - Bright Paprika (more vibrant in dark) */
+  --primary: 25 70% 62%; /* Brighter paprika */
+  --primary-foreground: 0 0% 98%;
+
+  /* Secondary - Muted Sage */
+  --secondary: 84 30% 45%; /* Darker sage */
+  --secondary-foreground: 45 15% 95%;
+
+  /* Accent - Rich Turmeric */
+  --accent: 45 95% 65%; /* Rich turmeric */
+  --accent-foreground: 25 15% 12%;
+
+  --muted: 30 10% 25%; /* Dark mushroom */
+  --muted-foreground: 30 10% 70%;
+  --destructive: 15 75% 70%; /* Warm red */
+  --destructive-foreground: 0 0% 98%;
+  --border: 25 15% 25%; /* Dark border */
+  --input: 25 15% 20%; /* Dark input */
+  --ring: 25 70% 62%; /* Bright paprika ring */
+
+  /* Dark Chart Colors */
+  --chart-1: 25 70% 62%; /* Bright paprika */
+  --chart-2: 84 40% 60%; /* Sage */
+  --chart-3: 45 95% 75%; /* Turmeric */
+  --chart-4: 75 45% 70%; /* Olive */
+  --chart-5: 35 85% 75%; /* Caramel */
+}
+
+/* Cooking-themed Custom Properties */
+:root {
+  /* Friendly Spacing Scale */
+  --space-cozy: 0.5rem;
+  --space-comfortable: 1rem;
+  --space-generous: 1.5rem;
+  --space-spacious: 2rem;
+
+  /* Cooking Animation Durations */
+  --duration-quick: 150ms;
+  --duration-simmer: 300ms;
+  --duration-slow-cook: 500ms;
+
+  /* Typography Scale */
+  --font-size-ingredient: 0.875rem;
+  --font-size-recipe-step: 1rem;
+  --font-size-dish-name: 1.25rem;
+  --font-size-section-title: 1.5rem;
+}
+
+/* Cooking-themed Animations */
+/* Removed simmer animation to prevent form movement */
+
+/* Removed sizzle animation to prevent form movement */
+
+@keyframes stir {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bubble {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: translateY(0px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+}
+
+/* Friendly Utility Classes */
+/* Removed all cooking animation classes to prevent form movement */
+
+/* Warm Shadow Styles */
+.shadow-warm {
+  box-shadow: 0 4px 6px -1px oklch(0.48 0.12 25 / 0.1),
+    0 2px 4px -1px oklch(0.48 0.12 25 / 0.06);
+}
+
+.shadow-cozy {
+  box-shadow: 0 10px 15px -3px oklch(0.48 0.12 25 / 0.1),
+    0 4px 6px -2px oklch(0.48 0.12 25 / 0.05);
+}
+
+/* Base Styles */
+* {
+  border-color: hsl(var(--border));
+  outline-color: hsl(var(--ring) / 0.5);
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Smooth transitions for warm feel */
+button,
+input,
+select,
+textarea {
+  transition: all var(--duration-simmer) ease;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Enhanced Button Styles */
+.btn-cooking {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 300ms ease;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 4px 6px -1px hsl(var(--primary) / 0.1),
+    0 2px 4px -1px hsl(var(--primary) / 0.06);
+  cursor: pointer;
+}
+
+.btn-cooking:hover {
+  background-color: hsl(var(--primary) / 0.9);
+  box-shadow: 0 10px 15px -3px hsl(var(--primary) / 0.1),
+    0 4px 6px -2px hsl(var(--primary) / 0.05);
+}
+
+.btn-cooking:focus {
+  outline: 2px solid hsl(var(--primary) / 0.5);
+  outline-offset: 2px;
+}
+
+.card-recipe {
+  border-radius: 0.75rem;
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px hsl(var(--primary) / 0.1),
+    0 2px 4px -1px hsl(var(--primary) / 0.06);
+  transition: all 300ms ease;
+}
+
+.card-recipe:hover {
+  box-shadow: 0 10px 15px -3px hsl(var(--primary) / 0.1),
+    0 4px 6px -2p hsl(var(--primary) / 0.05);
+}
+
+/* Slider Styles */
+.slider-primary::-webkit-slider-thumb {
+  appearance: none;
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  border: 3px solid white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.slider-primary::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.slider-primary:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.3);
+}
+
+.slider-primary::-moz-range-thumb {
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  border: 3px solid white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.slider-accent::-webkit-slider-thumb {
+  appearance: none;
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+  background: hsl(var(--accent));
+  border: 3px solid white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.slider-accent::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.slider-accent:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px hsl(var(--accent) / 0.3);
+}
+
+.slider-accent::-moz-range-thumb {
+  height: 24px;
+  width: 24px;
+  border-radius: 50%;
+  background: hsl(var(--accent));
+  border: 3px solid white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
