@@ -44,8 +44,8 @@ export default function WeeklyPlanPage() {
   const currentPlan = getCurrentWeekPlan();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/10 flex items-center justify-center p-4">
-      <Card className="w-full max-w-3xl shadow-cozy">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[hsl(var(--paprika))]/10 via-[hsl(var(--sage))]/10 to-[hsl(var(--turmeric))]/10">
+      <Card className="w-full max-w-3xl shadow-cozy border-2 border-[hsl(var(--paprika))]/50 bg-white/90">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-primary">
             Your Weekly Meal Plan
