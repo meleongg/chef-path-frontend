@@ -24,18 +24,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast, Toaster } from "sonner";
 
-const cuisineOptions = [
-  { value: "Italian", label: "🍝 Italian" },
-  { value: "Chinese", label: "🥢 Chinese" },
-  { value: "Mexican", label: "🌮 Mexican" },
-  { value: "American", label: "🍔 American" },
-];
-
-const skillLevels = [
-  { value: "beginner", label: "👶 Beginner - Just starting out!" },
-  { value: "intermediate", label: "👨‍🍳 Intermediate - I know the basics" },
-  { value: "advanced", label: "🧑‍🍳 Advanced - I'm pretty experienced" },
-];
+import { CUISINE_OPTIONS, SKILL_LEVELS } from "@/constants";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -172,15 +161,17 @@ export default function OnboardingPage() {
                       opacity: 1,
                     }}
                   >
-                    {cuisineOptions.map((cuisine) => (
-                      <SelectItem
-                        key={cuisine.value}
-                        value={cuisine.value}
-                        className="cursor-pointer border-b border-border/50"
-                      >
-                        {cuisine.label}
-                      </SelectItem>
-                    ))}
+                    {CUISINE_OPTIONS.map(
+                      (cuisine: { value: string; label: string }) => (
+                        <SelectItem
+                          key={cuisine.value}
+                          value={cuisine.value}
+                          className="cursor-pointer border-b border-border/50"
+                        >
+                          {cuisine.label}
+                        </SelectItem>
+                      )
+                    )}
                   </SelectContent>
                 </Select>
                 {errors.cuisine && (
@@ -266,15 +257,17 @@ export default function OnboardingPage() {
                       opacity: 1,
                     }}
                   >
-                    {skillLevels.map((level) => (
-                      <SelectItem
-                        key={level.value}
-                        value={level.value}
-                        className="cursor-pointer border-b border-border/50"
-                      >
-                        {level.label}
-                      </SelectItem>
-                    ))}
+                    {SKILL_LEVELS.map(
+                      (level: { value: string; label: string }) => (
+                        <SelectItem
+                          key={level.value}
+                          value={level.value}
+                          className="cursor-pointer border-b border-border/50"
+                        >
+                          {level.label}
+                        </SelectItem>
+                      )
+                    )}
                   </SelectContent>
                 </Select>
                 {errors.skill_level && (
