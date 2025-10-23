@@ -102,13 +102,16 @@ export const api = {
   async submitFeedback(
     feedbackData: SubmitFeedbackRequest
   ): Promise<SubmitFeedbackResponse> {
-    const response = await fetch(`${API_BASE_URL}/feedback`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(feedbackData),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/feedback/${feedbackData.user_id}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(feedbackData),
+      }
+    );
 
     return handleResponse<SubmitFeedbackResponse>(response);
   },

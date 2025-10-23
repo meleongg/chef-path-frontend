@@ -1,6 +1,9 @@
 "use client";
 
+import RecipeFeedbackForm from "@/components/RecipeFeedbackForm";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useRecipes } from "@/hooks";
 import type { ParsedRecipe } from "@/types";
 import Link from "next/link";
@@ -74,6 +77,23 @@ export default function RecipeDetailPage() {
             <div className="whitespace-pre-line text-sm">
               {recipe.instructions}
             </div>
+          </div>
+          {/* Mark as Complete Button & Feedback Modal */}
+          <div className="flex justify-center mt-8">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  className="bg-[hsl(var(--sage))] text-primary px-6 py-2 rounded font-semibold border border-[hsl(var(--paprika))] shadow transition-colors duration-200 hover:bg-[hsl(var(--sage))]/40 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--paprika))]"
+                  variant="default"
+                  size="default"
+                >
+                  Mark as Complete
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="p-0 max-w-lg bg-white">
+                <RecipeFeedbackForm recipeId={recipe.id} weekNumber={1} />
+              </DialogContent>
+            </Dialog>
           </div>
         </CardContent>
       </Card>
