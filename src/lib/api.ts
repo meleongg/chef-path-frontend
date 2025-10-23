@@ -14,6 +14,8 @@ import {
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
+const AUTH_BASE_URL =
+  process.env.NEXT_PUBLIC_AUTH_BASE_URL || "http://localhost:8000/auth";
 
 class ApiError extends Error {
   constructor(
@@ -135,7 +137,7 @@ export const api = {
   },
 
   async login(data: LoginRequest): Promise<LoginResponse> {
-    const response = await fetch(`${API_BASE_URL}/login`, {
+    const response = await fetch(`${AUTH_BASE_URL}/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
