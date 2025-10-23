@@ -18,14 +18,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFeedback, useUser } from "@/hooks";
 import { useEffect, useState } from "react";
 
+
 interface RecipeFeedbackFormProps {
   recipeId: number;
   weekNumber: number;
+  onFeedbackSubmitted?: () => void;
 }
 
 export default function RecipeFeedbackForm({
   recipeId,
   weekNumber,
+  onFeedbackSubmitted,
 }: RecipeFeedbackFormProps) {
   const { submitFeedback, isSubmitting, error: feedbackError } = useFeedback();
   const { user } = useUser();
@@ -66,6 +69,7 @@ export default function RecipeFeedbackForm({
     });
     if (ok) {
       setSuccess(true);
+      if (onFeedbackSubmitted) onFeedbackSubmitted();
     }
   };
 

@@ -8,13 +8,16 @@ import { useRecipes } from "@/hooks";
 import type { ParsedRecipe } from "@/types";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export default function RecipeDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const { getRecipe, isLoading, error } = useRecipes();
   const [recipe, setRecipe] = useState<ParsedRecipe | null>(null);
+  const [completed, setCompleted] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
+  const feedbackSubmittedRef = useRef(false);
 
   useEffect(() => {
     if (id) {
@@ -22,6 +25,15 @@ export default function RecipeDetailPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // Listen for dialog close and set completed if feedback was submitted
+  const handleDialogOpenChange = (open: boolean) => {
+    setShowDialog(open);
+    if (!open && feedbackSubmittedRef.current) {
+      setCompleted(true);
+      feedbackSubmittedRef.current = false;
+    }
+  };
 
   if (isLoading || !recipe) {
     return (
@@ -80,20 +92,40 @@ export default function RecipeDetailPage() {
           </div>
           {/* Mark as Complete Button & Feedback Modal */}
           <div className="flex justify-center mt-8">
-            <Dialog>
-              <DialogTrigger asChild>
+            {/* Toggle between dialog and completed button */}
+            {!completed ? (
+              <>
                 <Button
                   className="bg-[hsl(var(--sage))] text-primary px-6 py-2 rounded font-semibold border border-[hsl(var(--paprika))] shadow transition-colors duration-200 hover:bg-[hsl(var(--sage))]/40 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--paprika))]"
                   variant="default"
                   size="default"
+                  onClick={() => setShowDialog(true)}
                 >
                   Mark as Complete
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="p-0 max-w-lg bg-white">
-                <RecipeFeedbackForm recipeId={recipe.id} weekNumber={1} />
-              </DialogContent>
-            </Dialog>
+                <Dialog open={showDialog} onOpenChange={handleDialogOpenChange}>
+                  <DialogContent className="p-0 max-w-lg bg-white">
+                    <RecipeFeedbackForm
+                      recipeId={recipe.id}
+                      weekNumber={1}
+                      // Use a custom prop to notify parent when feedback is submitted
+                      onFeedbackSubmitted={() => {
+                        feedbackSubmittedRef.current = true;
+                      }}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </>
+            ) : (
+              <Button
+                className="bg-green-200 text-green-900 px-6 py-2 rounded font-semibold border border-green-400 shadow transition-colors duration-200 hover:bg-green-300 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+                variant="default"
+                size="default"
+                onClick={() => setCompleted(false)}
+              >
+                ✓ Completed
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
