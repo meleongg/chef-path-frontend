@@ -18,13 +18,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { COOKING_GOALS, CUISINE_OPTIONS, SKILL_LEVELS } from "@/constants";
 import { useFormValidation, useUser } from "@/hooks";
 import { CreateUserRequest } from "@/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast, Toaster } from "sonner";
-
-import { CUISINE_OPTIONS, SKILL_LEVELS } from "@/constants";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -36,8 +35,10 @@ export default function OnboardingPage() {
     cuisine: "",
     frequency: 3,
     skill_level: "",
-    course_duration: 8,
+    user_goal: "",
   });
+
+  const { name, cuisine, frequency, skill_level, user_goal } = formData;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,8 +53,7 @@ export default function OnboardingPage() {
         errorMessages.push(`Skill Level: ${errors.skill_level}`);
       if (errors.frequency)
         errorMessages.push(`Frequency: ${errors.frequency}`);
-      if (errors.course_duration)
-        errorMessages.push(`Duration: ${errors.course_duration}`);
+      if (errors.user_goal) errorMessages.push(`Goal: ${errors.user_goal}`);
 
       toast.error("Form Validation Error", {
         description:
@@ -118,7 +118,7 @@ export default function OnboardingPage() {
                   name="name"
                   type="text"
                   placeholder="Enter your first name"
-                  value={formData.name}
+                  value={name}
                   onChange={(e) => updateFormData("name", e.target.value)}
                   className={`h-12 text-base ${
                     errors.name
@@ -140,7 +140,7 @@ export default function OnboardingPage() {
                   <span className="text-red-500">*</span>
                 </Label>
                 <Select
-                  value={formData.cuisine}
+                  value={cuisine}
                   onValueChange={(value) => updateFormData("cuisine", value)}
                 >
                   <SelectTrigger
@@ -199,14 +199,14 @@ export default function OnboardingPage() {
                       Meals per week
                     </span>
                     <span className="text-2xl font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
-                      {formData.frequency}
+                      {frequency}
                     </span>
                   </div>
                   <div className="px-2">
                     <Slider
                       min={1}
                       max={7}
-                      value={formData.frequency}
+                      value={frequency}
                       onValueChange={(value) =>
                         updateFormData("frequency", value)
                       }
@@ -234,7 +234,7 @@ export default function OnboardingPage() {
                   <span className="text-red-500">*</span>
                 </Label>
                 <Select
-                  value={formData.skill_level}
+                  value={skill_level}
                   onValueChange={(value) =>
                     updateFormData("skill_level", value)
                   }
@@ -277,49 +277,48 @@ export default function OnboardingPage() {
                 )}
               </div>
 
-              {/* Course Duration */}
-              <div className="space-y-3">
-                <Label className="text-base font-medium">
-                  How many weeks would you like your cooking journey to last?{" "}
+              {/* Cooking Goal */}
+              <div className="space-y-2">
+                <Label htmlFor="user-goal" className="text-base font-medium">
+                  What is your primary cooking goal with ChefPath?{" "}
                   <span className="text-red-500">*</span>
                 </Label>
-                <div
-                  className={`px-6 py-4 bg-muted/30 rounded-lg border ${
-                    errors.course_duration
-                      ? "border-red-500 bg-red-50/50"
-                      : "border-border/50"
-                  }`}
+                <Select
+                  value={user_goal}
+                  onValueChange={(value) => updateFormData("user_goal", value)}
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Course duration
-                    </span>
-                    <span className="text-2xl font-bold text-accent bg-accent/10 px-3 py-1 rounded-full">
-                      {formData.course_duration} week
-                      {formData.course_duration !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                  <div className="px-2">
-                    <Slider
-                      min={4}
-                      max={16}
-                      value={formData.course_duration}
-                      onValueChange={(value) =>
-                        updateFormData("course_duration", value)
-                      }
-                      color="accent"
-                      className="mb-3"
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span className="font-medium">4 weeks</span>
-                      <span className="font-medium">10 weeks</span>
-                      <span className="font-medium">16 weeks</span>
-                    </div>
-                  </div>
-                </div>
-                {errors.course_duration && (
+                  <SelectTrigger
+                    className={`h-12 text-base ${
+                      errors.user_goal
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                        : ""
+                    }`}
+                  >
+                    <SelectValue placeholder="Select your cooking goal" />
+                  </SelectTrigger>
+                  <SelectContent
+                    position="popper"
+                    sideOffset={5}
+                    className="z-[9999] max-h-[200px] overflow-y-auto min-w-[var(--radix-select-trigger-width)] bg-background border border-border shadow-lg backdrop-blur-none"
+                    style={{
+                      backgroundColor: "hsl(var(--background))",
+                      opacity: 1,
+                    }}
+                  >
+                    {COOKING_GOALS.map((goal) => (
+                      <SelectItem
+                        key={goal.value}
+                        value={goal.value}
+                        className="cursor-pointer border-b border-border/50"
+                      >
+                        {goal.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.user_goal && (
                   <p className="text-sm text-red-600 font-medium bg-red-50 border border-red-200 rounded-md px-3 py-2">
-                    {errors.course_duration}
+                    {errors.user_goal}
                   </p>
                 )}
               </div>

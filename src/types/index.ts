@@ -5,7 +5,7 @@ export interface User {
   cuisine: string; // "Italian", "Chinese", "Mexican", "American"
   frequency: number; // meals per week (1-7)
   skill_level: string; // "beginner", "intermediate", "advanced"
-  course_duration: number; // total weeks in course
+  user_goal: string; // e.g., 'techniques', 'cuisine', 'health', 'efficiency', 'confidence'
   created_at: string;
 }
 
@@ -57,7 +57,7 @@ export interface CreateUserRequest {
   cuisine: string;
   frequency: number;
   skill_level: string;
-  course_duration: number;
+  user_goal: string;
 }
 
 export interface UpdateUserRequest {

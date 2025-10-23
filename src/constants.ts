@@ -1,3 +1,25 @@
+export const COOKING_GOALS = [
+  {
+    value: "techniques",
+    label: "Learn New Techniques (e.g., knife skills, sauces, dough)",
+  },
+  {
+    value: "cuisine",
+    label: "Master a Cuisine (e.g., Italian, Thai, Baking)",
+  },
+  {
+    value: "health",
+    label: "Eat Healthier (e.g., weight loss, more vegetables, less sodium)",
+  },
+  {
+    value: "efficiency",
+    label: "Cook Faster/More Efficiently (e.g., weeknight meals, meal prep)",
+  },
+  {
+    value: "confidence",
+    label: "Gain Confidence (e.g., hosting dinner parties, improvising recipes)",
+  },
+];
 // Cooking app constants
 
 export const CUISINE_OPTIONS = [
