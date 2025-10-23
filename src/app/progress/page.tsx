@@ -36,9 +36,9 @@ export default function ProgressPage() {
       100
   );
 
-  // Find completed weeks (unlocked and <= current week)
+  // Find completed weeks (unlocked and < current week)
   const completedWeeks = weeklyPlans.filter(
-    (plan) => plan.is_unlocked && plan.week_number <= userProgress.current_week
+    (plan) => plan.is_unlocked && plan.week_number < userProgress.current_week
   );
 
   return (
