@@ -1,5 +1,7 @@
 import {
   CreateUserRequest,
+  LoginRequest,
+  LoginResponse,
   Recipe,
   SubmitFeedbackRequest,
   SubmitFeedbackResponse,
@@ -130,6 +132,17 @@ export const api = {
       `${API_BASE_URL}/progress/${userId}/week/${weekNumber}`
     );
     return handleResponse<UserRecipeProgress[]>(response);
+  },
+
+  async login(data: LoginRequest): Promise<LoginResponse> {
+    const response = await fetch(`${API_BASE_URL}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    return handleResponse<LoginResponse>(response);
   },
 };
 
