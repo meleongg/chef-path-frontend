@@ -9,6 +9,8 @@ import type { ParsedRecipe } from "@/types";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
+import { useApp, actions } from "@/contexts/AppContext";
+import { api } from "@/lib/api";
 
 export default function RecipeDetailPage() {
   const { id } = useParams();
@@ -18,6 +20,10 @@ export default function RecipeDetailPage() {
   const [completed, setCompleted] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const feedbackSubmittedRef = useRef(false);
+  const { state, dispatch } = useApp();
+  const user = state.user;
+  const currentWeek = state.currentWeek;
+  const weeklyRecipeProgress = state.weeklyRecipeProgress;
 
   useEffect(() => {
     if (id) {
@@ -25,6 +31,28 @@ export default function RecipeDetailPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  useEffect(() => {
+    if (user && currentWeek) {
+      api.getWeeklyRecipeProgress(user.id, currentWeek)
+        .then((progress) => {
+          dispatch(actions.setWeeklyRecipeProgress(progress));
+        })
+        .catch((err) => {
+          // Optionally handle error
+        });
+    }
+  }, [user, currentWeek]);
+
+  // Check if this recipe is completed in weekly progress
+  useEffect(() => {
+    if (recipe && weeklyRecipeProgress) {
+      const progress = weeklyRecipeProgress.find(
+        (p) => p.recipe_id === recipe.id && p.status === "completed"
+      );
+      setCompleted(!!progress);
+    }
+  }, [recipe, weeklyRecipeProgress]);
 
   // Listen for dialog close and set completed if feedback was submitted
   const handleDialogOpenChange = (open: boolean) => {

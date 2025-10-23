@@ -1,6 +1,6 @@
 "use client";
 
-import { User, UserProgress, WeeklyPlan } from "@/types";
+import { User, UserProgress, UserRecipeProgress, WeeklyPlan } from "@/types";
 import React, { createContext, ReactNode, useContext, useReducer } from "react";
 
 // App State Interface
@@ -9,6 +9,7 @@ interface AppState {
   currentWeek: number;
   weeklyPlans: WeeklyPlan[];
   userProgress: UserProgress | null;
+  weeklyRecipeProgress: UserRecipeProgress[];
   isLoading: boolean;
   error: string | null;
 }
@@ -21,6 +22,7 @@ type AppAction =
   | { type: "SET_CURRENT_WEEK"; payload: number }
   | { type: "SET_WEEKLY_PLANS"; payload: WeeklyPlan[] }
   | { type: "SET_USER_PROGRESS"; payload: UserProgress | null }
+  | { type: "SET_WEEKLY_RECIPE_PROGRESS"; payload: UserRecipeProgress[] }
   | { type: "UPDATE_WEEKLY_PLAN"; payload: WeeklyPlan }
   | { type: "RESET_STATE" };
 
@@ -30,6 +32,7 @@ const initialState: AppState = {
   currentWeek: 1,
   weeklyPlans: [],
   userProgress: null,
+  weeklyRecipeProgress: [],
   isLoading: false,
   error: null,
 };
@@ -61,6 +64,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
         weeklyPlans: state.weeklyPlans.map((plan) =>
           plan.id === action.payload.id ? action.payload : plan
         ),
+      };
+    case "SET_WEEKLY_RECIPE_PROGRESS":
+      return {
+        ...state,
+        weeklyRecipeProgress: action.payload,
       };
 
     case "RESET_STATE":
@@ -103,6 +111,10 @@ export function useApp() {
 
 // Action Creators (for better TypeScript support)
 export const actions = {
+  setWeeklyRecipeProgress: (progress: UserRecipeProgress[]): AppAction => ({
+    type: "SET_WEEKLY_RECIPE_PROGRESS",
+    payload: progress,
+  }),
   setLoading: (isLoading: boolean): AppAction => ({
     type: "SET_LOADING",
     payload: isLoading,

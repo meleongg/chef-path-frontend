@@ -6,6 +6,7 @@ import {
   UpdateUserRequest,
   User,
   UserProgress,
+  UserRecipeProgress,
   WeeklyPlan,
 } from "@/types";
 
@@ -119,6 +120,16 @@ export const api = {
   async getUserProgress(userId: number): Promise<UserProgress> {
     const response = await fetch(`${API_BASE_URL}/progress/${userId}`);
     return handleResponse<UserProgress>(response);
+  },
+
+  async getWeeklyRecipeProgress(
+    userId: number,
+    weekNumber: number
+  ): Promise<UserRecipeProgress[]> {
+    const response = await fetch(
+      `${API_BASE_URL}/progress/${userId}/week/${weekNumber}`
+    );
+    return handleResponse<UserRecipeProgress[]>(response);
   },
 };
 
