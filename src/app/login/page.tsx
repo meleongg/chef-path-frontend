@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useUser } from "@/hooks";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -14,6 +15,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { loadUser } = useUser();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,8 +23,10 @@ export default function LoginPage() {
     setError("");
     try {
       const res = await api.login({ username, password });
-      if (res.access_token) {
+      if (res.access_token && res.user) {
         localStorage.setItem("chefpath_token", res.access_token);
+        // Set user in context
+        await loadUser(res.user.id);
         router.push("/weekly-plan");
       } else {
         setError("Invalid response from server.");

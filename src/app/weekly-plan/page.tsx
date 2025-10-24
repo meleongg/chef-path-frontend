@@ -21,6 +21,7 @@ export default function WeeklyPlanPage() {
 
   useEffect(() => {
     if (!user && !userLoading) {
+      // console.log(user); # null right now
       router.push("/onboarding");
     } else if (user) {
       loadWeeklyPlans(user.id);
