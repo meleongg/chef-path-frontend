@@ -75,7 +75,6 @@ export interface UpdateUserRequest {
   cuisine?: string;
   frequency?: number;
   skill_level?: string;
-  // course_duration?: number;
 }
 
 export interface SubmitFeedbackRequest {
@@ -106,7 +105,6 @@ export interface OnboardingFormData {
   cuisine: string;
   frequency: number;
   skill_level: string;
-  // course_duration: number;
 }
 
 export interface FeedbackFormData {
