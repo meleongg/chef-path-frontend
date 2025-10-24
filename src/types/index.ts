@@ -10,6 +10,8 @@ export interface RegisterRequest {
 export interface RegisterResponse {
   success: boolean;
   message?: string;
+  access_token?: string;
+  user?: User;
 }
 
 export interface LoginRequest {

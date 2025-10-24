@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import type { RegisterRequest } from "@/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useUser } from "@/hooks";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -16,6 +17,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { user, isLoading, error: userError, loadUser } = useUser();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,8 +26,10 @@ export default function RegisterPage() {
     try {
       const payload: RegisterRequest = { username, password, name };
       const res = await api.register(payload);
-      if (res && res.success) {
-        router.push("/login");
+      if (res && res.success && res.access_token && res.user) {
+        localStorage.setItem("chefpath_token", res.access_token);
+        await loadUser(res.user.id);
+        router.push("/onboarding");
       } else {
         setError(res?.message || "Registration failed.");
       }
