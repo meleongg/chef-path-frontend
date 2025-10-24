@@ -283,11 +283,6 @@ export function useFormValidation() {
       newErrors.skill_level = "Please select your skill level";
     }
 
-    if (data.course_duration < 1 || data.course_duration > 52) {
-      newErrors.course_duration =
-        "Course duration must be between 1 and 52 weeks";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
