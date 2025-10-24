@@ -3,18 +3,24 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useApp, actions } from "@/contexts/AppContext";
 
-export default function Navbar({
-  showMinimal = false,
-}: {
-  showMinimal?: boolean;
-}) {
+export default function Navbar({ showMinimal = false }: { showMinimal?: boolean }) {
   const pathname = usePathname();
+  const { dispatch } = useApp();
   const navLinks = [
     { href: "/weekly-plan", label: "Weekly Plan" },
     { href: "/progress", label: "Progress" },
     // { href: "/profile", label: "Profile" }, // Uncomment if/when profile is implemented
   ];
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("chefpath_token");
+      dispatch(actions.resetState());
+      window.location.href = "/";
+    }
+  };
 
   return (
     <nav className="w-full bg-white/80 border-b border-border shadow-sm sticky top-0 z-50">
@@ -29,13 +35,7 @@ export default function Navbar({
           {showMinimal ? (
             <Button
               variant="outline"
-              onClick={() => {
-                // Implement logout logic here
-                if (typeof window !== "undefined") {
-                  localStorage.removeItem("chefpath_token");
-                  window.location.href = "/";
-                }
-              }}
+              onClick={handleLogout}
               aria-label="Logout"
             >
               Logout

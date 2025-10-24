@@ -23,8 +23,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <ClientNavbar />
-        <AppProvider>{children}</AppProvider>
+        <AppProvider>
+          <ClientNavbar />
+          {children}
+        </AppProvider>
       </body>
     </html>
   );
