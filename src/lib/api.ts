@@ -28,6 +28,17 @@ class ApiError extends Error {
   }
 }
 
+function getAuthHeaders() {
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("chefpath_token")
+      : null;
+  if (token) {
+    return { Authorization: `Bearer ${token}` };
+  }
+  return undefined;
+}
+
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const errorText = await response.text();
@@ -56,7 +67,12 @@ export const api = {
   },
 
   async getUser(userId: number): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/user/${userId}`);
+    const response = await fetch(`${API_BASE_URL}/user/${userId}`, {
+      headers: Object.assign(
+        { "Content-Type": "application/json" },
+        getAuthHeaders() || {}
+      ),
+    });
     return handleResponse<User>(response);
   },
 
@@ -65,6 +81,7 @@ export const api = {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        ...getAuthHeaders(),
       },
       body: JSON.stringify(updates),
     });
@@ -73,32 +90,59 @@ export const api = {
   },
 
   async getAllUsers(): Promise<User[]> {
-    const response = await fetch(`${API_BASE_URL}/users`);
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+    });
     return handleResponse<User[]>(response);
   },
 
   // Weekly Plans
   async getWeeklyPlan(userId: number, weekNumber: number): Promise<WeeklyPlan> {
     const response = await fetch(
-      `${API_BASE_URL}/weekly-plan?user_id=${userId}&week_number=${weekNumber}`
+      `${API_BASE_URL}/weekly-plan?user_id=${userId}&week_number=${weekNumber}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+      }
     );
     return handleResponse<WeeklyPlan>(response);
   },
 
   async getAllWeeklyPlans(userId: number): Promise<WeeklyPlan[]> {
-    const response = await fetch(`${API_BASE_URL}/weekly-plan/${userId}/all`);
+    const response = await fetch(`${API_BASE_URL}/weekly-plan/${userId}/all`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+    });
     return handleResponse<WeeklyPlan[]>(response);
   },
 
   // Recipes
   async getRecipe(recipeId: number): Promise<Recipe> {
-    const response = await fetch(`${API_BASE_URL}/recipe/${recipeId}`);
+    const response = await fetch(`${API_BASE_URL}/recipe/${recipeId}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+    });
     return handleResponse<Recipe>(response);
   },
 
   async getRandomRecipes(count: number = 5): Promise<Recipe[]> {
     const response = await fetch(
-      `${API_BASE_URL}/recipes/random?count=${count}`
+      `${API_BASE_URL}/recipes/random?count=${count}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+      }
     );
     return handleResponse<Recipe[]>(response);
   },
@@ -113,6 +157,7 @@ export const api = {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...getAuthHeaders(),
         },
         body: JSON.stringify(feedbackData),
       }
@@ -122,7 +167,12 @@ export const api = {
   },
 
   async getUserProgress(userId: number): Promise<UserProgress> {
-    const response = await fetch(`${API_BASE_URL}/progress/${userId}`);
+    const response = await fetch(`${API_BASE_URL}/progress/${userId}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+    });
     return handleResponse<UserProgress>(response);
   },
 
@@ -131,7 +181,13 @@ export const api = {
     weekNumber: number
   ): Promise<UserRecipeProgress[]> {
     const response = await fetch(
-      `${API_BASE_URL}/progress/${userId}/week/${weekNumber}`
+      `${API_BASE_URL}/progress/${userId}/week/${weekNumber}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+      }
     );
     return handleResponse<UserRecipeProgress[]>(response);
   },
