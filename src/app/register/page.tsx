@@ -96,6 +96,19 @@ export default function RegisterPage() {
             </Button>
           </form>
         </CardContent>
+        <div className="text-center mt-4">
+          <span className="text-muted-foreground">
+            Already have an account?
+          </span>
+          <Button
+            variant="link"
+            className="ml-2 text-primary underline"
+            onClick={() => router.push("/login")}
+            aria-label="Go to Login"
+          >
+            Login
+          </Button>
+        </div>
       </Card>
     </div>
   );
