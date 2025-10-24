@@ -5,9 +5,11 @@ import { usePathname } from "next/navigation";
 
 export default function ClientNavbar() {
   const pathname = usePathname();
-  // Only show Navbar on authenticated pages (not landing or login)
-  const showNavbar =
-    pathname !== "/" && pathname !== "/login" && pathname !== "/onboarding";
-
-  return showNavbar ? <Navbar /> : null;
+  if (pathname === "/" || pathname === "/login") {
+    return null;
+  }
+  if (pathname === "/onboarding") {
+    return <Navbar showMinimal />;
+  }
+  return <Navbar />;
 }
