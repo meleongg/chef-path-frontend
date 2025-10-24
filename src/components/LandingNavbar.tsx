@@ -22,7 +22,7 @@ export default function LandingNavbar() {
             <span className="text-2xl font-bold text-primary">ChefPath</span>
           </div>
 
-          {/* Login + CTA Buttons in Nav */}
+          {/* Login + Register + CTA Buttons in Nav */}
           <div className="flex items-center gap-3">
             <Button
               onClick={() => router.push("/login")}
@@ -31,7 +31,13 @@ export default function LandingNavbar() {
             >
               Login
             </Button>
-
+            <Button
+              onClick={() => router.push("/register")}
+              className="text-primary bg-transparent hover:underline px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--sage))]"
+              aria-label="Register for ChefPath"
+            >
+              Register
+            </Button>
             <Button
               onClick={handleGetStarted}
               className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground font-semibold px-6 py-2 shadow-warm hover:shadow-cozy transition-all duration-300"

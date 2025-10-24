@@ -10,6 +10,8 @@ import {
   UserProgress,
   UserRecipeProgress,
   WeeklyPlan,
+  RegisterRequest,
+  RegisterResponse,
 } from "@/types";
 
 const API_BASE_URL =
@@ -53,6 +55,16 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export const api = {
+  async register(data: RegisterRequest): Promise<RegisterResponse> {
+    const response = await fetch(`${AUTH_BASE_URL}/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    return handleResponse<RegisterResponse>(response);
+  },
   // User Management
   async createUser(userData: CreateUserRequest): Promise<User> {
     const response = await fetch(`${API_BASE_URL}/user`, {

@@ -1,5 +1,17 @@
 // ChefPath API Types
 
+// Registration Types
+export interface RegisterRequest {
+  username: string;
+  password: string;
+  name: string;
+}
+
+export interface RegisterResponse {
+  success: boolean;
+  message?: string;
+}
+
 export interface LoginRequest {
   username: string;
   password: string;
