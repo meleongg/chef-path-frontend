@@ -1,4 +1,4 @@
-import Navbar from "@/components/Navbar";
+import ClientNavbar from "@/components/ClientNavbar";
 import { AppProvider } from "@/contexts/AppContext";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -17,13 +17,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <Navbar />
+        <ClientNavbar />
         <AppProvider>{children}</AppProvider>
       </body>
     </html>

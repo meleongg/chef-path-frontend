@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useUser } from "@/hooks";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import LandingNavbar from "@/components/LandingNavbar";
 
 export default function Home() {
   const router = useRouter();
@@ -43,27 +44,7 @@ export default function Home() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary))_0%,transparent_25%),radial-gradient(circle_at_70%_80%,hsl(var(--accent))_0%,transparent_25%),radial-gradient(circle_at_40%_60%,hsl(var(--secondary))_0%,transparent_20%)] opacity-5"></div>
 
       {/* Navigation Bar */}
-      <nav className="relative border-b border-border/20 bg-background/80 backdrop-blur-md">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center shadow-warm">
-                <span className="text-xl">🍳</span>
-              </div>
-              <span className="text-2xl font-bold text-primary">ChefPath</span>
-            </div>
-
-            {/* CTA Button in Nav */}
-            <Button
-              onClick={handleGetStarted}
-              className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground font-semibold px-6 py-2 shadow-warm hover:shadow-cozy transition-all duration-300"
-            >
-              Get Started Free
-            </Button>
-          </div>
-        </div>
-      </nav>
+      <LandingNavbar />
 
       {/* Hero Section */}
       <div className="relative container mx-auto px-4 py-16">
@@ -88,7 +69,7 @@ export default function Home() {
               <Button
                 onClick={handleGetStarted}
                 size="lg"
-                className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-primary via-primary/90 to-accent hover:from-primary/90 hover:via-primary hover:to-accent/90 text-primary-foreground shadow-cozy hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+                className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-primary via-primary/90 to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground shadow-cozy hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
               >
                 <span className="flex items-center gap-3">
                   <span className="text-xl">🚀</span>
