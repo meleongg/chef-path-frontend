@@ -1,23 +1,29 @@
 "use client";
 
+import AuthGuard from "@/components/AuthGuard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFeedback, useUser, useWeeklyPlans } from "@/hooks";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function ProgressPage() {
+  return (
+    <AuthGuard requireOnboarding>
+      <ProgressPageContent />
+    </AuthGuard>
+  );
+}
+
+function ProgressPageContent() {
   const { user, isLoading } = useUser();
   const { userProgress, loadUserProgress } = useFeedback();
   const { weeklyPlans } = useWeeklyPlans();
-  const router = useRouter();
+
   useEffect(() => {
-    if (!user && !isLoading) {
-      router.push("/onboarding");
-    } else if (user) {
+    if (user) {
       loadUserProgress(user.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, isLoading]);
+  }, [user]);
 
   if (isLoading || !user || !userProgress) {
     return (

@@ -1,4 +1,3 @@
-import ClientNavbar from "@/components/ClientNavbar";
 import { AppProvider } from "@/contexts/AppContext";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -23,10 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <AppProvider>
-          <ClientNavbar />
-          {children}
-        </AppProvider>
+        <AppProvider>{children}</AppProvider>
       </body>
     </html>
   );
