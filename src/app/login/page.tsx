@@ -58,7 +58,9 @@ export default function LoginPage() {
         <CardContent>
           <form className="space-y-6" onSubmit={handleLogin}>
             <div>
-              <Label htmlFor="username">Email</Label>
+              <Label htmlFor="username">
+                Email <span className="text-red-600">*</span>
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -70,7 +72,9 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">
+                Password <span className="text-red-600">*</span>
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -83,7 +87,13 @@ export default function LoginPage() {
             </div>
             {error && (
               <div className="text-red-600 text-sm font-medium text-center">
-                {error}
+                {error === "Login failed." &&
+                  "Login failed. Please check your email and password and try again."}
+                {error === "Invalid response from server." &&
+                  "Something went wrong. Please try again later."}
+                {error !== "Login failed." &&
+                  error !== "Invalid response from server." &&
+                  error}
               </div>
             )}
             <Button

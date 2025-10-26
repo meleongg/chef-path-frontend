@@ -57,7 +57,9 @@ export default function RegisterPage() {
         <CardContent>
           <form className="space-y-6" onSubmit={handleRegister}>
             <div>
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName">
+                First Name <span className="text-red-600">*</span>
+              </Label>
               <Input
                 id="firstName"
                 type="text"
@@ -69,7 +71,9 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName">
+                Last Name <span className="text-red-600">*</span>
+              </Label>
               <Input
                 id="lastName"
                 type="text"
@@ -81,7 +85,9 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">
+                Email <span className="text-red-600">*</span>
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -93,7 +99,9 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">
+                Password <span className="text-red-600">*</span>
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -106,7 +114,13 @@ export default function RegisterPage() {
             </div>
             {error && (
               <div className="text-red-600 text-sm font-medium text-center">
-                {error}
+                {error === "Registration failed." &&
+                  "Registration failed. Please check your details and try again."}
+                {error === "Invalid response from server." &&
+                  "Something went wrong. Please try again later."}
+                {error !== "Registration failed." &&
+                  error !== "Invalid response from server." &&
+                  error}
               </div>
             )}
             <Button
