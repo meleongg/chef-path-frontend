@@ -267,10 +267,6 @@ export function useFormValidation() {
   const validateOnboarding = (data: CreateUserRequest): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!data.name.trim()) {
-      newErrors.name = "Name is required";
-    }
-
     if (!data.cuisine) {
       newErrors.cuisine = "Please select a cuisine";
     }
