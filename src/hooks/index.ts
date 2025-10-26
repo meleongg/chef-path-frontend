@@ -3,7 +3,7 @@
 import { actions, useApp } from "@/contexts/AppContext";
 import { api, parseHelpers } from "@/lib/api";
 import {
-  CreateUserRequest,
+  UserProfileRequest,
   ParsedRecipe,
   SubmitFeedbackRequest,
   User,
@@ -16,14 +16,14 @@ import { useState } from "react";
 export function useUser() {
   const { state, dispatch } = useApp();
 
-  const createUser = async (
-    userData: CreateUserRequest
+  const updateUserProfile = async (
+    userData: UserProfileRequest
   ): Promise<User | null> => {
     try {
       dispatch(actions.setLoading(true));
       dispatch(actions.setError(null));
 
-      const user = await api.createUser(userData);
+      const user = await api.updateUserProfile(userData);
       dispatch(actions.setUser(user));
 
       // Store user ID in localStorage for persistence
@@ -32,7 +32,7 @@ export function useUser() {
       return user;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to create user";
+        error instanceof Error ? error.message : "Failed to update user profile";
       dispatch(actions.setError(errorMessage));
       return null;
     } finally {
@@ -71,7 +71,7 @@ export function useUser() {
     user: state.user,
     isLoading: state.isLoading,
     error: state.error,
-    createUser,
+  updateUserProfile,
     loadUser,
     initializeUser,
   };
@@ -264,7 +264,7 @@ export function useFeedback() {
 export function useFormValidation() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const validateOnboarding = (data: CreateUserRequest): boolean => {
+  const validateOnboarding = (data: UserProfileRequest): boolean => {
     const newErrors: Record<string, string> = {};
 
     if (!data.cuisine) {

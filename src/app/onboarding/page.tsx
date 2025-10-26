@@ -19,17 +19,17 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { COOKING_GOALS, CUISINE_OPTIONS, SKILL_LEVELS } from "@/constants";
 import { useFormValidation, useUser } from "@/hooks";
-import { CreateUserRequest } from "@/types";
+import { UserProfileRequest } from "@/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast, Toaster } from "sonner";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { createUser, isLoading, error } = useUser();
+  const { updateUserProfile, isLoading, error } = useUser();
   const { errors, validateOnboarding, clearErrors } = useFormValidation();
 
-  const [formData, setFormData] = useState<CreateUserRequest>({
+  const [formData, setFormData] = useState<UserProfileRequest>({
     cuisine: "",
     frequency: 3,
     skill_level: "",
@@ -61,7 +61,7 @@ export default function OnboardingPage() {
     }
 
     try {
-      const user = await createUser(formData);
+  const user = await updateUserProfile(formData);
       if (user) {
         toast.success("Welcome to ChefPath! 🍳", {
           description: "Your cooking journey starts now!",
@@ -79,7 +79,7 @@ export default function OnboardingPage() {
   };
 
   const updateFormData = (
-    field: keyof CreateUserRequest,
+  field: keyof UserProfileRequest,
     value: string | number
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

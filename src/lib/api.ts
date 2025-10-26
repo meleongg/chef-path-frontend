@@ -1,17 +1,16 @@
 import {
-  CreateUserRequest,
   LoginRequest,
   LoginResponse,
   Recipe,
+  RegisterRequest,
+  RegisterResponse,
   SubmitFeedbackRequest,
   SubmitFeedbackResponse,
-  UpdateUserRequest,
   User,
+  UserProfileRequest,
   UserProgress,
   UserRecipeProgress,
   WeeklyPlan,
-  RegisterRequest,
-  RegisterResponse,
 } from "@/types";
 
 const API_BASE_URL =
@@ -20,16 +19,15 @@ const AUTH_BASE_URL =
   process.env.NEXT_PUBLIC_AUTH_BASE_URL || "http://localhost:8000/auth";
 
 class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public response?: Response
-  ) {
+  public status: number;
+  public response?: Response;
+  constructor(message: string, status: number, response?: Response) {
     super(message);
     this.name = "ApiError";
+    this.status = status;
+    this.response = response;
   }
 }
-
 function getAuthHeaders() {
   const token =
     typeof window !== "undefined"
@@ -66,11 +64,12 @@ export const api = {
     return handleResponse<RegisterResponse>(response);
   },
   // User Management
-  async createUser(userData: CreateUserRequest): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/user`, {
-      method: "POST",
+  async updateUserProfile(userData: UserProfileRequest): Promise<User> {
+    const response = await fetch(`${API_BASE_URL}/user/profile`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        ...(getAuthHeaders() || {}),
       },
       body: JSON.stringify(userData),
     });
@@ -88,7 +87,7 @@ export const api = {
     return handleResponse<User>(response);
   },
 
-  async updateUser(userId: number, updates: UpdateUserRequest): Promise<User> {
+  async updateUser(userId: number, updates: UserProfileRequest): Promise<User> {
     const response = await fetch(`${API_BASE_URL}/user/${userId}`, {
       method: "PUT",
       headers: {
@@ -222,20 +221,18 @@ export const parseHelpers = {
     try {
       return JSON.parse(ingredientsJson);
     } catch (error) {
-      console.error("Failed to parse recipe ingredients:", error);
+      console.error("Failed to parse ingredients:", error);
       return [];
     }
   },
-
   parseRecipeTags(tagsJson: string): string[] {
     try {
       return JSON.parse(tagsJson);
     } catch (error) {
-      console.error("Failed to parse recipe tags:", error);
+      console.error("Failed to parse tags:", error);
       return [];
     }
   },
-
   parseRecipeIds(recipeIdsJson: string): number[] {
     try {
       return JSON.parse(recipeIdsJson);

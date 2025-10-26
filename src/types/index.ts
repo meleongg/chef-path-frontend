@@ -77,18 +77,11 @@ export interface UserProgress {
 }
 
 // Request/Response Types
-export interface CreateUserRequest {
+export interface UserProfileRequest {
   cuisine: string;
   frequency: number;
   skill_level: string;
   user_goal: string;
-}
-
-export interface UpdateUserRequest {
-  cuisine?: string;
-  frequency?: number;
-  skill_level?: string;
-  user_goal?: string;
 }
 
 export interface SubmitFeedbackRequest {
