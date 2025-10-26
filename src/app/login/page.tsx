@@ -26,8 +26,17 @@ export default function LoginPage() {
       if (res.access_token && res.user) {
         localStorage.setItem("chefpath_token", res.access_token);
         // Set user in context
-        await loadUser(res.user.id);
-        router.push("/weekly-plan");
+        const user = await loadUser(res.user.id);
+        const needsOnboarding =
+          !user?.frequency ||
+          !user?.cuisine ||
+          !user?.skill_level ||
+          !user?.user_goal;
+        if (needsOnboarding) {
+          router.push("/onboarding");
+        } else {
+          router.push("/weekly-plan");
+        }
       } else {
         setError("Invalid response from server.");
       }

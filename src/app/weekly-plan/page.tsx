@@ -21,9 +21,10 @@ export default function WeeklyPlanPage() {
 
   useEffect(() => {
     if (!user && !userLoading) {
-      // console.log(user); # null right now
       router.push("/onboarding");
-    } else if (user) {
+      return;
+    }
+    if (user) {
       loadWeeklyPlans(user.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
