@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -31,14 +30,13 @@ export default function OnboardingPage() {
   const { errors, validateOnboarding, clearErrors } = useFormValidation();
 
   const [formData, setFormData] = useState<CreateUserRequest>({
-    name: "",
     cuisine: "",
     frequency: 3,
     skill_level: "",
     user_goal: "",
   });
 
-  const { name, cuisine, frequency, skill_level, user_goal } = formData;
+  const { cuisine, frequency, skill_level, user_goal } = formData;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +45,6 @@ export default function OnboardingPage() {
     if (!validateOnboarding(formData)) {
       // Show toast for validation errors
       const errorMessages = [];
-      if (errors.name) errorMessages.push(`Name: ${errors.name}`);
       if (errors.cuisine) errorMessages.push(`Cuisine: ${errors.cuisine}`);
       if (errors.skill_level)
         errorMessages.push(`Skill Level: ${errors.skill_level}`);
@@ -108,31 +105,6 @@ export default function OnboardingPage() {
 
           <CardContent className="space-y-6 relative">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Name Field */}
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-base font-medium">
-                  What's your name? <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  placeholder="Enter your first name"
-                  value={name}
-                  onChange={(e) => updateFormData("name", e.target.value)}
-                  className={`h-12 text-base ${
-                    errors.name
-                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                      : ""
-                  }`}
-                />
-                {errors.name && (
-                  <p className="text-sm text-red-600 font-medium bg-red-50 border border-red-200 rounded-md px-3 py-2">
-                    {errors.name}
-                  </p>
-                )}
-              </div>
-
               {/* Cuisine Preference */}
               <div className="space-y-2">
                 <Label className="text-base font-medium">
