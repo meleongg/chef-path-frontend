@@ -2,9 +2,10 @@
 
 // Registration Types
 export interface RegisterRequest {
-  username: string;
+  email: string;
   password: string;
-  name: string;
+  first_name: string;
+  last_name: string;
 }
 
 export interface RegisterResponse {
@@ -15,7 +16,7 @@ export interface RegisterResponse {
 }
 
 export interface LoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 

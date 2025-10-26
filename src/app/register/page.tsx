@@ -4,16 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useUser } from "@/hooks";
 import { api } from "@/lib/api";
 import type { RegisterRequest } from "@/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useUser } from "@/hooks";
 
 export default function RegisterPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -24,7 +25,12 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
     try {
-      const payload: RegisterRequest = { username, password, name };
+      const payload: RegisterRequest = {
+        email,
+        password,
+        first_name: firstName,
+        last_name: lastName,
+      };
       const res = await api.register(payload);
       if (res && res.success && res.access_token && res.user) {
         localStorage.setItem("chefpath_token", res.access_token);
@@ -51,27 +57,39 @@ export default function RegisterPage() {
         <CardContent>
           <form className="space-y-6" onSubmit={handleRegister}>
             <div>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="firstName">First Name</Label>
               <Input
-                id="name"
+                id="firstName"
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 required
                 className="mt-1"
                 autoComplete="name"
               />
             </div>
             <div>
-              <Label htmlFor="username">Username or Email</Label>
+              <Label htmlFor="lastName">Last Name</Label>
               <Input
-                id="username"
+                id="lastName"
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
                 required
                 className="mt-1"
-                autoComplete="username"
+                autoComplete="name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="mt-1"
+                autoComplete="email"
               />
             </div>
             <div>

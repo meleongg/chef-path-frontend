@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,7 +22,7 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await api.login({ username, password });
+      const res = await api.login({ email, password });
       if (res.access_token && res.user) {
         localStorage.setItem("chefpath_token", res.access_token);
         // Set user in context
@@ -49,15 +49,15 @@ export default function LoginPage() {
         <CardContent>
           <form className="space-y-6" onSubmit={handleLogin}>
             <div>
-              <Label htmlFor="username">Username or Email</Label>
+              <Label htmlFor="username">Email</Label>
               <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="mt-1"
-                autoComplete="username"
+                autoComplete="email"
               />
             </div>
             <div>
