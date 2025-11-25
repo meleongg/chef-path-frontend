@@ -79,6 +79,32 @@ export interface UserProgress {
   skill_progression: string; // "advancing", "stable", "needs_support"
 }
 
+// Agent API Endpoints
+export interface WeeklyPlanResponse {
+  id: string;
+  user_id: string;
+  week_number: number;
+  recipe_ids: string;
+  generated_at: string;
+  is_unlocked: boolean;
+  recipes: Recipe[];
+}
+export interface GeneralChatRequest {
+  user_message: string;
+}
+
+export interface GeneralChatResponse {
+  response: string;
+}
+
+export interface GenerateWeeklyPlanRequest {
+  initial_intent: string;
+}
+
+export interface ChatModifyPlanRequest {
+  user_message: string;
+}
+
 // Request/Response Types
 export interface UserProfileRequest {
   cuisine: string;

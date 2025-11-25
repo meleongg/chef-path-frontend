@@ -1,4 +1,6 @@
 import {
+  GeneralChatRequest,
+  GeneralChatResponse,
   LoginRequest,
   LoginResponse,
   Recipe,
@@ -11,6 +13,7 @@ import {
   UserProgress,
   UserRecipeProgress,
   WeeklyPlan,
+  WeeklyPlanResponse,
 } from "@/types";
 
 const API_BASE_URL =
@@ -53,6 +56,50 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export const api = {
+  async generalChat(
+    userId: string,
+    chatInput: GeneralChatRequest
+  ): Promise<GeneralChatResponse> {
+    const response = await fetch(`${API_BASE_URL}/general/${userId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(chatInput),
+    });
+    return handleResponse<GeneralChatResponse>(response);
+  },
+
+  async generateWeeklyPlan(
+    userId: string,
+    initial_intent: string
+  ): Promise<WeeklyPlanResponse> {
+    const response = await fetch(`${API_BASE_URL}/generate/${userId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ initial_intent }),
+    });
+    return handleResponse<WeeklyPlanResponse>(response);
+  },
+
+  async chatModifyPlan(
+    userId: string,
+    user_message: string
+  ): Promise<WeeklyPlanResponse> {
+    const response = await fetch(`${API_BASE_URL}/chat/${userId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ user_message }),
+    });
+    return handleResponse<WeeklyPlanResponse>(response);
+  },
   async register(data: RegisterRequest): Promise<RegisterResponse> {
     const response = await fetch(`${AUTH_BASE_URL}/register`, {
       method: "POST",
