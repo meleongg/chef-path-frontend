@@ -41,24 +41,28 @@ export default function LoginPage() {
         setError("Invalid response from server.");
       }
     } catch (err: any) {
-      setError(err?.message || "Login failed. Please try again.");
+      let friendlyError = "Login failed. Please try again.";
+      if (err.status == 401) {
+        friendlyError = "Invalid email or password. Please try again.";
+      }
+      setError(friendlyError);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[hsl(var(--paprika))]/10 via-[hsl(var(--sage))]/10 to-[hsl(var(--turmeric))]/10">
-      <Card className="w-full max-w-md shadow-cozy border-2 border-[hsl(var(--paprika))] bg-white/90">
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <Card className="w-full max-w-md mx-auto shadow-lg border border-[hsl(var(--paprika))]">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-primary text-center">
-            Login to ChefPath
+          <CardTitle className="text-center text-2xl font-bold">
+            Login
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form className="space-y-6" onSubmit={handleLogin}>
             <div>
-              <Label htmlFor="username">
+              <Label htmlFor="email">
                 Email <span className="text-red-600">*</span>
               </Label>
               <Input
@@ -87,13 +91,7 @@ export default function LoginPage() {
             </div>
             {error && (
               <div className="text-red-600 text-sm font-medium text-center">
-                {error === "Login failed." &&
-                  "Login failed. Please check your email and password and try again."}
-                {error === "Invalid response from server." &&
-                  "Something went wrong. Please try again later."}
-                {error !== "Login failed." &&
-                  error !== "Invalid response from server." &&
-                  error}
+                {error}
               </div>
             )}
             <Button

@@ -40,7 +40,11 @@ export default function RegisterPage() {
         setError(res?.message || "Registration failed.");
       }
     } catch (err: any) {
-      setError(err?.message || "Registration failed. Please try again.");
+      let friendlyError = "Registration failed. Please try again.";
+      if (err.status == 401) {
+        friendlyError = "Invalid email or password. Please try again.";
+      }
+      setError(friendlyError);
     } finally {
       setLoading(false);
     }
