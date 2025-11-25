@@ -77,7 +77,7 @@ export const api = {
     return handleResponse<User>(response);
   },
 
-  async getUser(userId: number): Promise<User> {
+  async getUser(userId: string): Promise<User> {
     const response = await fetch(`${API_BASE_URL}/user/${userId}`, {
       headers: Object.assign(
         { "Content-Type": "application/json" },
@@ -124,7 +124,7 @@ export const api = {
     return handleResponse<WeeklyPlan>(response);
   },
 
-  async getAllWeeklyPlans(userId: number): Promise<WeeklyPlan[]> {
+  async getAllWeeklyPlans(userId: string): Promise<WeeklyPlan[]> {
     const response = await fetch(`${API_BASE_URL}/weekly-plan/${userId}/all`, {
       headers: {
         "Content-Type": "application/json",

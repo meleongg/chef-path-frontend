@@ -26,7 +26,7 @@ export interface LoginResponse {
   user: User;
 }
 export interface User {
-  id: number;
+  id: string;
   name: string;
   cuisine: string; // "Italian", "Chinese", "Mexican", "American"
   frequency: number; // meals per week (1-7)
@@ -36,7 +36,7 @@ export interface User {
 }
 
 export interface Recipe {
-  id: number;
+  id: string;
   external_id: string; // TheMealDB ID
   name: string;
   cuisine: string;
@@ -49,8 +49,8 @@ export interface Recipe {
 }
 
 export interface WeeklyPlan {
-  id: number;
-  user_id: number;
+  id: string;
+  user_id: string;
   week_number: number;
   recipe_ids: string; // JSON string of recipe IDs array
   is_unlocked: boolean;
@@ -59,12 +59,14 @@ export interface WeeklyPlan {
 }
 
 export interface UserRecipeProgress {
-  id: number;
-  user_id: number;
-  recipe_id: number;
+  id: string;
+  user_id: string;
+  recipe_id: string;
   week_number: number;
   status: string; // "not_started", "in_progress", "completed"
   feedback: string; // "too_easy", "just_right", "too_hard"
+  satisfaction_rating?: number; // 1-5 stars, AI input field
+  difficulty_rating?: number; // 1-5 difficulty, AI input field
   completed_at: string;
   created_at: string;
 }
@@ -86,8 +88,8 @@ export interface UserProfileRequest {
 }
 
 export interface SubmitFeedbackRequest {
-  user_id: number;
-  recipe_id: number;
+  user_id: string;
+  recipe_id: string;
   week_number: number;
   feedback: string; // "too_easy", "just_right", "too_hard"
 }
@@ -104,7 +106,7 @@ export interface ParsedRecipe extends Omit<Recipe, "ingredients" | "tags"> {
 }
 
 export interface ParsedWeeklyPlan extends Omit<WeeklyPlan, "recipe_ids"> {
-  recipe_ids: number[];
+  recipe_ids: string[];
 }
 
 // UI State Types

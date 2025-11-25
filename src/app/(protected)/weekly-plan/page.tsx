@@ -27,7 +27,6 @@ export default function WeeklyPlanPage() {
     if (user) {
       loadWeeklyPlans(user.id);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, userLoading]);
 
   if (userLoading || plansLoading || !user) {

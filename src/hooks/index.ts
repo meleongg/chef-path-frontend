@@ -3,10 +3,10 @@
 import { actions, useApp } from "@/contexts/AppContext";
 import { api, parseHelpers } from "@/lib/api";
 import {
-  UserProfileRequest,
   ParsedRecipe,
   SubmitFeedbackRequest,
   User,
+  UserProfileRequest,
   UserProgress,
   WeeklyPlan,
 } from "@/types";
@@ -32,7 +32,9 @@ export function useUser() {
       return user;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to update user profile";
+        error instanceof Error
+          ? error.message
+          : "Failed to update user profile";
       dispatch(actions.setError(errorMessage));
       return null;
     } finally {
@@ -40,7 +42,7 @@ export function useUser() {
     }
   };
 
-  const loadUser = async (userId: number): Promise<User | null> => {
+  const loadUser = async (userId: string): Promise<User | null> => {
     try {
       dispatch(actions.setLoading(true));
       dispatch(actions.setError(null));
@@ -63,7 +65,7 @@ export function useUser() {
   const initializeUser = async (): Promise<void> => {
     const storedUserId = localStorage.getItem("chefpath_user_id");
     if (storedUserId) {
-      await loadUser(parseInt(storedUserId, 10));
+      await loadUser(storedUserId);
     }
   };
 
@@ -71,7 +73,7 @@ export function useUser() {
     user: state.user,
     isLoading: state.isLoading,
     error: state.error,
-  updateUserProfile,
+    updateUserProfile,
     loadUser,
     initializeUser,
   };
@@ -81,7 +83,7 @@ export function useUser() {
 export function useWeeklyPlans() {
   const { state, dispatch } = useApp();
 
-  const loadWeeklyPlans = async (userId: number): Promise<WeeklyPlan[]> => {
+  const loadWeeklyPlans = async (userId: string): Promise<WeeklyPlan[]> => {
     try {
       dispatch(actions.setLoading(true));
       dispatch(actions.setError(null));
