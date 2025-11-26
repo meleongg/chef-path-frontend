@@ -4,10 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 
 import { useUser, useWeeklyPlans } from "@/hooks";
+import { api } from "@/lib/api";
+import { WeeklyPlanResponse } from "@/types";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function WeeklyPlanPage() {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState("");
+  const [generatedPlan, setGeneratedPlan] = useState<WeeklyPlanResponse | null>(
+    null
+  );
   const { user, isLoading: userLoading } = useUser();
   const {
     weeklyPlans,
@@ -42,7 +49,11 @@ export default function WeeklyPlanPage() {
     );
   }
 
-  const currentPlan = getCurrentWeekPlan();
+  const currentPlan = generatedPlan || getCurrentWeekPlan();
+  const nextWeek =
+    weeklyPlans && weeklyPlans.length > 0
+      ? Math.max(...weeklyPlans.map((plan) => plan.week_number)) + 1
+      : 1;
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[hsl(var(--paprika))]/10 via-[hsl(var(--sage))]/10 to-[hsl(var(--turmeric))]/10">
@@ -55,6 +66,9 @@ export default function WeeklyPlanPage() {
         <CardContent>
           {error && (
             <div className="text-red-600 text-center mb-4">{error}</div>
+          )}
+          {generateError && (
+            <div className="text-red-600 text-center mb-4">{generateError}</div>
           )}
           {currentPlan ? (
             <div className="py-4">
@@ -92,8 +106,44 @@ export default function WeeklyPlanPage() {
               </div>
             </div>
           ) : (
-            <div className="text-muted-foreground text-center py-8">
-              No meal plan found for this week.
+            <div className="text-center py-8">
+              <div className="mb-6 text-lg text-muted-foreground">
+                You don’t have a weekly meal plan yet.<br />
+                Click below to generate your personalized plan and get started!
+              </div>
+              <button
+                className="px-6 py-3 bg-[hsl(var(--paprika))] text-[hsl(var(--sage))] font-semibold rounded shadow border border-[hsl(var(--sage))] hover:bg-[hsl(var(--paprika))]/90 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--sage))] disabled:opacity-60"
+                onClick={async () => {
+                  setIsGenerating(true);
+                  setGenerateError("");
+                  try {
+                    const initialIntent = `Create a weekly meal plan for week ${nextWeek} for a user who prefers ${user.cuisine} cuisine, wants ${user.frequency} meals per week, is a ${user.skill_level} cook, and whose goal is ${user.user_goal}.`;
+                    const plan = await api.generateWeeklyPlan(
+                      user.id,
+                      initialIntent
+                    );
+                    setGeneratedPlan(plan);
+                  } catch (err: any) {
+                    setGenerateError(
+                      err?.message ||
+                        "Failed to generate weekly plan. Please try again."
+                    );
+                  } finally {
+                    setIsGenerating(false);
+                  }
+                }}
+                disabled={isGenerating}
+                aria-label={`Generate Week ${nextWeek} Plan`}
+              >
+                {isGenerating ? (
+                  <span className="flex items-center justify-center">
+                    <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-2"></span>
+                    Generating...
+                  </span>
+                ) : (
+                  `Generate Week ${nextWeek} Plan`
+                )}
+              </button>
             </div>
           )}
         </CardContent>
