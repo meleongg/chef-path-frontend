@@ -20,6 +20,8 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
 const AUTH_BASE_URL =
   process.env.NEXT_PUBLIC_AUTH_BASE_URL || "http://localhost:8000/auth";
+const PLAN_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/plan";
 
 class ApiError extends Error {
   public status: number;
@@ -60,7 +62,7 @@ export const api = {
     userId: string,
     chatInput: GeneralChatRequest
   ): Promise<GeneralChatResponse> {
-    const response = await fetch(`${API_BASE_URL}/general/${userId}`, {
+    const response = await fetch(`${PLAN_BASE_URL}/general/${userId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -75,7 +77,7 @@ export const api = {
     userId: string,
     initial_intent: string
   ): Promise<WeeklyPlanResponse> {
-    const response = await fetch(`${API_BASE_URL}/generate/${userId}`, {
+    const response = await fetch(`${PLAN_BASE_URL}/generate/${userId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -90,7 +92,7 @@ export const api = {
     userId: string,
     user_message: string
   ): Promise<WeeklyPlanResponse> {
-    const response = await fetch(`${API_BASE_URL}/chat/${userId}`, {
+    const response = await fetch(`${PLAN_BASE_URL}/chat/${userId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
