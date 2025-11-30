@@ -138,13 +138,13 @@ export function useWeeklyPlans() {
 
 // Hook for managing recipes
 export function useRecipes() {
-  const [recipeCache, setRecipeCache] = useState<Map<number, ParsedRecipe>>(
+  const [recipeCache, setRecipeCache] = useState<Map<string, ParsedRecipe>>(
     new Map()
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const getRecipe = async (recipeId: number): Promise<ParsedRecipe | null> => {
+  const getRecipe = async (recipeId: string): Promise<ParsedRecipe | null> => {
     // Check cache first
     if (recipeCache.has(recipeId)) {
       return recipeCache.get(recipeId)!;
@@ -177,7 +177,7 @@ export function useRecipes() {
     }
   };
 
-  const getRecipeFromCache = (recipeId: number): ParsedRecipe | null => {
+  const getRecipeFromCache = (recipeId: string): ParsedRecipe | null => {
     return recipeCache.get(recipeId) || null;
   };
 
@@ -233,7 +233,7 @@ export function useFeedback() {
   };
 
   const loadUserProgress = async (
-    userId: number
+    userId: string
   ): Promise<UserProgress | null> => {
     try {
       dispatch(actions.setLoading(true));

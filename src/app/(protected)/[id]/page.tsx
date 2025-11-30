@@ -3,19 +3,18 @@
 import RecipeFeedbackForm from "@/components/RecipeFeedbackForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { actions, useApp } from "@/contexts/AppContext";
 import { useRecipes } from "@/hooks";
+import { api } from "@/lib/api";
 import type { ParsedRecipe } from "@/types";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
-import { useApp, actions } from "@/contexts/AppContext";
-import { api } from "@/lib/api";
+import { useParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 export default function RecipeDetailPage() {
   const { id } = useParams();
-  const router = useRouter();
-  const { getRecipe, isLoading, error } = useRecipes();
+  const { getRecipe, isLoading } = useRecipes();
   const [recipe, setRecipe] = useState<ParsedRecipe | null>(null);
   const [completed, setCompleted] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
@@ -27,14 +26,14 @@ export default function RecipeDetailPage() {
 
   useEffect(() => {
     if (id) {
-      getRecipe(Number(id)).then((data) => setRecipe(data));
+      getRecipe(String(id)).then((data) => setRecipe(data));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
     if (user && currentWeek) {
-      api.getWeeklyRecipeProgress(user.id, currentWeek)
+      api
+        .getWeeklyRecipeProgress(user.id, currentWeek)
         .then((progress) => {
           dispatch(actions.setWeeklyRecipeProgress(progress));
         })

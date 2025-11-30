@@ -136,7 +136,7 @@ export const api = {
     return handleResponse<User>(response);
   },
 
-  async updateUser(userId: number, updates: UserProfileRequest): Promise<User> {
+  async updateUser(userId: string, updates: UserProfileRequest): Promise<User> {
     const response = await fetch(`${API_BASE_URL}/user/${userId}`, {
       method: "PUT",
       headers: {
@@ -160,7 +160,7 @@ export const api = {
   },
 
   // Weekly Plans
-  async getWeeklyPlan(userId: number, weekNumber: number): Promise<WeeklyPlan> {
+  async getWeeklyPlan(userId: string, weekNumber: number): Promise<WeeklyPlan> {
     const response = await fetch(
       `${API_BASE_URL}/weekly-plan?user_id=${userId}&week_number=${weekNumber}`,
       {
@@ -226,7 +226,7 @@ export const api = {
     return handleResponse<SubmitFeedbackResponse>(response);
   },
 
-  async getUserProgress(userId: number): Promise<UserProgress> {
+  async getUserProgress(userId: string): Promise<UserProgress> {
     const response = await fetch(`${API_BASE_URL}/progress/${userId}`, {
       headers: {
         "Content-Type": "application/json",
@@ -237,7 +237,7 @@ export const api = {
   },
 
   async getWeeklyRecipeProgress(
-    userId: number,
+    userId: string,
     weekNumber: number
   ): Promise<UserRecipeProgress[]> {
     const response = await fetch(
