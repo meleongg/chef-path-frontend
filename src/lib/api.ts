@@ -184,7 +184,7 @@ export const api = {
   },
 
   // Recipes
-  async getRecipe(recipeId: number): Promise<Recipe> {
+  async getRecipe(recipeId: string): Promise<Recipe> {
     const response = await fetch(`${API_BASE_URL}/recipe/${recipeId}`, {
       headers: {
         "Content-Type": "application/json",
@@ -266,7 +266,7 @@ export const api = {
 
 // Helper functions for parsing JSON strings from API
 export const parseHelpers = {
-  parseRecipeIngredients(ingredientsJson: string): string[] {
+  parseRecipeIngredients(ingredientsJson: string): any[] {
     try {
       return JSON.parse(ingredientsJson);
     } catch (error) {

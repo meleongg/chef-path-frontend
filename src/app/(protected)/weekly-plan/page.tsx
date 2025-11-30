@@ -80,7 +80,7 @@ export default function WeeklyPlanPage() {
                 {currentPlan.recipes.map((recipe) => (
                   <Link
                     key={recipe.id}
-                    href={`/recipe/${recipe.id}`}
+                    href={`/recipe/${recipe.id}?week=${currentPlan.week_number}`}
                     className="block group"
                   >
                     <Card className="overflow-hidden group-hover:shadow-lg transition-shadow">
