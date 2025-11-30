@@ -1,3 +1,4 @@
+import AuthInitializer from "@/components/AuthInitializer";
 import { AppProvider } from "@/contexts/AppContext";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -22,7 +23,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <AppProvider>{children}</AppProvider>
+        <AppProvider>
+          <AuthInitializer>{children}</AuthInitializer>
+        </AppProvider>
       </body>
     </html>
   );
