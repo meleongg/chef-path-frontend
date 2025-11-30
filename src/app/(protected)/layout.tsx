@@ -1,4 +1,5 @@
 import AuthGuard from "@/components/AuthGuard";
+import ClientFooter from "@/components/ClientFooter";
 import ClientNavbar from "@/components/ClientNavbar";
 
 export default function ProtectedLayout({
@@ -8,8 +9,11 @@ export default function ProtectedLayout({
 }) {
   return (
     <AuthGuard requireOnboarding>
-      <ClientNavbar />
-      {children}
+      <div className="flex flex-col min-h-screen">
+        <ClientNavbar />
+        <main className="flex-1">{children}</main>
+        <ClientFooter />
+      </div>
     </AuthGuard>
   );
 }

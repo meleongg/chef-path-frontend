@@ -1,11 +1,12 @@
 "use client";
 
+import LandingFooter from "@/components/LandingFooter";
+import LandingNavbar from "@/components/LandingNavbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useUser } from "@/hooks";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import LandingNavbar from "@/components/LandingNavbar";
 
 export default function Home() {
   const router = useRouter();
@@ -320,68 +321,7 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="relative bg-gradient-to-br from-primary/5 via-background to-accent/5 border-t border-border/30 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-12">
-          <div className="max-w-2xl space-y-8">
-            {/* Brand Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center shadow-warm">
-                  <span className="text-xl">🍳</span>
-                </div>
-                <span className="text-2xl font-bold text-primary">
-                  ChefPath
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Your personal cooking mentor that adapts to your skill level and
-                helps you master the kitchen one recipe at a time.
-              </p>
-            </div>
-
-            {/* Quick Links */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-primary">Quick Links</h3>
-              <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm text-muted-foreground">
-                <span className="hover:text-primary transition-colors cursor-pointer">
-                  How it Works
-                </span>
-                <span className="hover:text-primary transition-colors cursor-pointer">
-                  Recipe Library
-                </span>
-                <span className="hover:text-primary transition-colors cursor-pointer">
-                  Getting Started
-                </span>
-                <span className="hover:text-primary transition-colors cursor-pointer">
-                  Privacy Policy
-                </span>
-                <span className="hover:text-primary transition-colors cursor-pointer">
-                  Terms of Service
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Bar */}
-          <div className="mt-12 pt-8 border-t border-border/30 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-sm text-muted-foreground">
-              © 2025 ChefPath. All rights reserved.
-            </div>
-            <div className="flex items-center gap-6 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-                <span>All systems operational</span>
-              </div>
-              <div className="border-l border-border/30 pl-6">
-                <span>Built with Next.js</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Background decoration for footer */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-accent to-secondary opacity-30"></div>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }
