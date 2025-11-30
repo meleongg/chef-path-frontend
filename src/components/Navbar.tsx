@@ -17,6 +17,7 @@ export default function Navbar({ showMinimal = false }: { showMinimal?: boolean 
   const handleLogout = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("chefpath_token");
+      localStorage.removeItem("chefpath_user_id");
       dispatch(actions.resetState());
       window.location.href = "/";
     }

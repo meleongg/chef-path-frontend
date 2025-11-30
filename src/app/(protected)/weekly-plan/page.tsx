@@ -108,7 +108,8 @@ export default function WeeklyPlanPage() {
           ) : (
             <div className="text-center py-8">
               <div className="mb-6 text-lg text-muted-foreground">
-                You don’t have a weekly meal plan yet.<br />
+                You don’t have a weekly meal plan yet.
+                <br />
                 Click below to generate your personalized plan and get started!
               </div>
               <button
