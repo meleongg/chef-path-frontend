@@ -97,6 +97,12 @@ export interface GeneralChatResponse {
   response: string;
 }
 
+export interface AdaptiveChatResponse {
+  response: string;
+  intent: "general_knowledge" | "plan_modification" | "analytics";
+  requires_confirmation?: string;
+}
+
 export interface GenerateWeeklyPlanRequest {
   initial_intent: string;
 }
@@ -151,4 +157,12 @@ export interface FeedbackFormData {
 // Form validation errors
 export interface FormErrors {
   [key: string]: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  sender: "user" | "ai";
+  text: string;
+  timestamp: Date;
+  type?: "general" | "plan_modification"; // For future intent routing
 }

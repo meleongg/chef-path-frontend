@@ -1,11 +1,15 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { actions, useApp } from "@/contexts/AppContext";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useApp, actions } from "@/contexts/AppContext";
 
-export default function Navbar({ showMinimal = false }: { showMinimal?: boolean }) {
+export default function Navbar({
+  showMinimal = false,
+}: {
+  showMinimal?: boolean;
+}) {
   const pathname = usePathname();
   const { dispatch } = useApp();
   const navLinks = [
@@ -33,24 +37,21 @@ export default function Navbar({ showMinimal = false }: { showMinimal?: boolean 
           ChefPath
         </Link>
         <div className="flex gap-4">
-          {!showMinimal && navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`text-base font-medium px-2 py-1 rounded transition-colors duration-150 ${
-                pathname.startsWith(link.href)
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-accent/20"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-          <Button
-            variant="outline"
-            onClick={handleLogout}
-            aria-label="Logout"
-          >
+          {!showMinimal &&
+            navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`text-base font-medium px-2 py-1 rounded transition-colors duration-150 ${
+                  pathname.startsWith(link.href)
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-accent/20"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          <Button variant="outline" onClick={handleLogout} aria-label="Logout">
             Logout
           </Button>
         </div>

@@ -1,4 +1,5 @@
 import {
+  AdaptiveChatResponse,
   GeneralChatRequest,
   GeneralChatResponse,
   LoginRequest,
@@ -71,6 +72,21 @@ export const api = {
       body: JSON.stringify(chatInput),
     });
     return handleResponse<GeneralChatResponse>(response);
+  },
+
+  async adaptiveChat(
+    userId: string,
+    chatInput: GeneralChatRequest
+  ): Promise<AdaptiveChatResponse> {
+    const response = await fetch(`${PLAN_BASE_URL}/adaptive_chat/${userId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(chatInput),
+    });
+    return handleResponse<AdaptiveChatResponse>(response);
   },
 
   async generateWeeklyPlan(
