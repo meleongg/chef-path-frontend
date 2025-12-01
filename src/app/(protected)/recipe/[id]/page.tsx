@@ -43,7 +43,8 @@ export default function RecipePage({
           );
           if (feedback) {
             setExistingFeedback(feedback);
-            setHasFeedback(true);
+            // Only mark as having feedback if status is completed
+            setHasFeedback(feedback.status === "completed");
           }
         }
       } catch (err: any) {
@@ -237,7 +238,7 @@ export default function RecipePage({
                   );
                   if (feedback) {
                     setExistingFeedback(feedback);
-                    setHasFeedback(true);
+                    setHasFeedback(feedback.status === "completed");
                   }
                 }}
               />
