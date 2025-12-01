@@ -83,22 +83,32 @@ export default function WeeklyPlanPage() {
                     href={`/recipe/${recipe.id}?week=${currentPlan.week_number}`}
                     className="block group"
                   >
-                    <Card className="overflow-hidden group-hover:shadow-lg transition-shadow">
-                      {recipe.image_url && (
-                        <img
-                          src={recipe.image_url}
-                          alt={recipe.name}
-                          className="w-full h-40 object-cover group-hover:scale-105 transition-transform"
-                        />
+                    <Card className="overflow-hidden group-hover:shadow-lg transition-shadow h-full flex flex-col">
+                      {recipe.image_url ? (
+                        <div className="w-full h-48 overflow-hidden flex-shrink-0">
+                          <img
+                            src={recipe.image_url}
+                            alt={recipe.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-full h-48 flex-shrink-0 bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-[hsl(var(--sage))]/20 to-[hsl(var(--turmeric))]/20 flex items-center justify-center">
+                          <div className="text-center px-4">
+                            <span className="text-4xl mb-2 block">🍽️</span>
+                            <p className="text-sm font-medium text-muted-foreground">
+                              {recipe.cuisine}
+                            </p>
+                          </div>
+                        </div>
                       )}
-                      <CardContent className="p-4">
-                        <div className="font-bold text-lg text-primary mb-1 group-hover:underline">
+                      <CardContent className="p-4 flex-1 flex flex-col">
+                        <div className="font-bold text-lg text-primary mb-1 group-hover:underline line-clamp-2">
                           {recipe.name}
                         </div>
-                        <div className="text-sm text-muted-foreground mb-2">
+                        <div className="text-sm text-muted-foreground">
                           {recipe.cuisine}
                         </div>
-                        {/* Add more recipe info here as needed */}
                       </CardContent>
                     </Card>
                   </Link>
