@@ -118,6 +118,24 @@ export const api = {
     });
     return handleResponse<WeeklyPlanResponse>(response);
   },
+
+  async confirmPlanModification(
+    userId: string,
+    user_message: string
+  ): Promise<WeeklyPlanResponse> {
+    const response = await fetch(
+      `${PLAN_BASE_URL}/chat/confirm_modification/${userId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ user_message }),
+      }
+    );
+    return handleResponse<WeeklyPlanResponse>(response);
+  },
   async register(data: RegisterRequest): Promise<RegisterResponse> {
     const response = await fetch(`${AUTH_BASE_URL}/register`, {
       method: "POST",

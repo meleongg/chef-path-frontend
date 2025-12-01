@@ -15,6 +15,9 @@ export default function FloatingChat() {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [pendingModificationId, setPendingModificationId] = useState<
+    string | null
+  >(null);
   const { user } = useUser();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -78,6 +81,14 @@ export default function FloatingChat() {
       };
 
       setMessages((prev) => [...prev, aiMessage]);
+
+      // Check if plan modification requires confirmation
+      if (response.requires_confirmation === "true") {
+        // Store the message ID and original request for confirmation buttons
+        setPendingModificationId(aiMessage.id);
+        // Store original request in the message for later use
+        (aiMessage as any).originalRequest = userMessage.text;
+      }
     } catch (err: any) {
       setError(err?.message || "Failed to get response. Please try again.");
       // Remove the user message if the API call failed
@@ -85,6 +96,69 @@ export default function FloatingChat() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleConfirmModification = async (
+    messageId: string,
+    originalRequest: string
+  ) => {
+    if (!user) return;
+
+    setIsLoading(true);
+    setPendingModificationId(null);
+
+    try {
+      // Call the LangGraph endpoint to execute the plan modification
+      const updatedPlan = await api.confirmPlanModification(
+        user.id,
+        originalRequest
+      );
+
+      // Success message with updated plan info
+      const confirmMessage: ChatMessage = {
+        id: `system-${Date.now()}`,
+        sender: "ai",
+        text: `✅ Plan modification complete! Your week ${updatedPlan.week_number} plan has been updated with ${updatedPlan.recipes.length} recipes. Refresh the Weekly Plan page to see the changes.`,
+        timestamp: new Date(),
+        type: "plan_modification",
+      };
+
+      setMessages((prev) => [...prev, confirmMessage]);
+
+      // Optional: Trigger a plan refresh if needed
+      // You could dispatch an event or call a refresh function here
+    } catch (err: any) {
+      setError(err?.message || "Failed to confirm modification.");
+
+      // Add error message to chat
+      const errorMessage: ChatMessage = {
+        id: `error-${Date.now()}`,
+        sender: "ai",
+        text: `❌ Failed to modify plan: ${
+          err?.message || "Unknown error"
+        }. Please try again.`,
+        timestamp: new Date(),
+        type: "plan_modification",
+      };
+
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancelModification = () => {
+    setPendingModificationId(null);
+
+    const cancelMessage: ChatMessage = {
+      id: `system-${Date.now()}`,
+      sender: "ai",
+      text: "Modification cancelled. Your plan remains unchanged.",
+      timestamp: new Date(),
+      type: "general",
+    };
+
+    setMessages((prev) => [...prev, cancelMessage]);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -243,6 +317,36 @@ export default function FloatingChat() {
                         minute: "2-digit",
                       })}
                     </p>
+
+                    {/* Confirmation Buttons for Plan Modifications */}
+                    {message.sender === "ai" &&
+                      message.id === pendingModificationId &&
+                      (message as any).originalRequest && (
+                        <div className="mt-3 pt-3 border-t border-border flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleCancelModification}
+                            disabled={isLoading}
+                            className="flex-1 border-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              handleConfirmModification(
+                                message.id,
+                                (message as any).originalRequest
+                              )
+                            }
+                            disabled={isLoading}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                          >
+                            {isLoading ? "Processing..." : "Confirm Changes"}
+                          </Button>
+                        </div>
+                      )}
                   </div>
                 </div>
               ))}
