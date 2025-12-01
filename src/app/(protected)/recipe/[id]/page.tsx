@@ -22,6 +22,8 @@ export default function RecipePage({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [existingFeedback, setExistingFeedback] = useState<any>(null);
+  const [hasFeedback, setHasFeedback] = useState(false);
   const { user } = useUser();
   const router = useRouter();
 
@@ -31,6 +33,19 @@ export default function RecipePage({
         setIsLoading(true);
         const recipeData = await api.getRecipe(resolvedParams.id);
         setRecipe(recipeData);
+
+        // Fetch existing feedback if user is logged in
+        if (user) {
+          const feedback = await api.getRecipeProgress(
+            user.id,
+            resolvedParams.id,
+            weekNumber
+          );
+          if (feedback) {
+            setExistingFeedback(feedback);
+            setHasFeedback(true);
+          }
+        }
       } catch (err: any) {
         setError(err?.message || "Failed to load recipe");
       } finally {
@@ -41,7 +56,7 @@ export default function RecipePage({
     if (resolvedParams.id) {
       loadRecipe();
     }
-  }, [resolvedParams.id]);
+  }, [resolvedParams.id, user, weekNumber]);
 
   if (isLoading) {
     return (
@@ -94,11 +109,18 @@ export default function RecipePage({
               {user && (
                 <Button
                   onClick={() => setShowFeedbackForm(!showFeedbackForm)}
-                  className="w-full md:w-auto bg-[hsl(var(--paprika))] text-[hsl(var(--sage))] font-semibold border-2 border-[hsl(var(--sage))] shadow-md hover:bg-[hsl(var(--paprika))]/90 hover:shadow-lg transition-all"
+                  className={`w-full md:w-auto font-semibold border-2 shadow-md hover:shadow-lg transition-all ${
+                    hasFeedback
+                      ? "bg-green-600 hover:bg-green-700 text-white border-green-700"
+                      : "bg-[hsl(var(--paprika))] text-[hsl(var(--sage))] border-[hsl(var(--sage))] hover:bg-[hsl(var(--paprika))]/90"
+                  }`}
                   size="lg"
                 >
+                  {hasFeedback && "✓ "}
                   {showFeedbackForm
                     ? "Hide Feedback Form"
+                    : hasFeedback
+                    ? "Update Feedback"
                     : "Give Feedback on This Recipe"}
                 </Button>
               )}
@@ -204,8 +226,19 @@ export default function RecipePage({
               <RecipeFeedbackForm
                 recipeId={recipe.id}
                 weekNumber={weekNumber}
-                onFeedbackSubmitted={() => {
+                existingFeedback={existingFeedback}
+                onFeedbackSubmitted={async () => {
                   setShowFeedbackForm(false);
+                  // Refresh feedback after submission
+                  const feedback = await api.getRecipeProgress(
+                    user.id,
+                    recipe.id,
+                    weekNumber
+                  );
+                  if (feedback) {
+                    setExistingFeedback(feedback);
+                    setHasFeedback(true);
+                  }
                 }}
               />
             </DialogContent>

@@ -22,22 +22,32 @@ import { useEffect, useState } from "react";
 interface RecipeFeedbackFormProps {
   recipeId: string;
   weekNumber: number;
+  existingFeedback?: any;
   onFeedbackSubmitted?: () => void;
 }
 
 export default function RecipeFeedbackForm({
   recipeId,
   weekNumber,
+  existingFeedback,
   onFeedbackSubmitted,
 }: RecipeFeedbackFormProps) {
   const { submitFeedback, isSubmitting, error: feedbackError } = useFeedback();
   const { user } = useUser();
-  const [feedback, setFeedback] = useState("");
+  const [feedback, setFeedback] = useState(existingFeedback?.feedback || "");
   const [feedbackSelectError, setFeedbackSelectError] = useState<string | null>(
     null
   );
   const [notes, setNotes] = useState("");
   const [success, setSuccess] = useState(false);
+
+  // Pre-fill form with existing feedback
+  useEffect(() => {
+    if (existingFeedback) {
+      setFeedback(existingFeedback.feedback || "");
+      // You can add notes field to UserRecipeProgress if needed
+    }
+  }, [existingFeedback]);
 
   useEffect(() => {
     if (success) {
@@ -75,18 +85,23 @@ export default function RecipeFeedbackForm({
 
   return (
     <div className="bg-white rounded-lg shadow p-8 flex flex-col gap-6 relative">
-      <DialogTitle className="mb-1">Recipe Feedback</DialogTitle>
+      <DialogTitle className="mb-1">
+        {existingFeedback ? "Update Recipe Feedback" : "Recipe Feedback"}
+      </DialogTitle>
       <DialogClose className="absolute top-6 right-6" />
       {success ? (
         <div className="flex flex-col items-center justify-center py-12">
           <div className="text-green-600 font-medium text-lg">
-            Thank you for your feedback!
+            {existingFeedback ? "Feedback updated successfully!" : "Thank you for your feedback!"}
           </div>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <DialogDescription className="mb-4">
-            Let us know how this recipe went for you!
+            {existingFeedback 
+              ? "Update your feedback for this recipe."
+              : "Let us know how this recipe went for you!"
+            }
           </DialogDescription>
           <Label htmlFor="feedback-select">How was this recipe?</Label>
           <Select

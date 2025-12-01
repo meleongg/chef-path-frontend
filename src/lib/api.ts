@@ -242,6 +242,30 @@ export const api = {
   },
 
   // Feedback & Progress
+  async getRecipeProgress(
+    userId: string,
+    recipeId: string,
+    weekNumber: number
+  ): Promise<UserRecipeProgress | null> {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/progress/${userId}/recipe/${recipeId}/week/${weekNumber}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeaders(),
+          },
+        }
+      );
+      if (response.status === 404) {
+        return null; // No existing feedback
+      }
+      return handleResponse<UserRecipeProgress>(response);
+    } catch (err) {
+      return null; // Return null if not found
+    }
+  },
+
   async submitFeedback(
     feedbackData: SubmitFeedbackRequest
   ): Promise<SubmitFeedbackResponse> {

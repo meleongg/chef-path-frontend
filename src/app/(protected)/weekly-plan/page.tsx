@@ -15,6 +15,9 @@ export default function WeeklyPlanPage() {
   const [generatedPlan, setGeneratedPlan] = useState<WeeklyPlanResponse | null>(
     null
   );
+  const [recipeProgress, setRecipeProgress] = useState<Record<string, boolean>>(
+    {}
+  );
   const { user, isLoading: userLoading } = useUser();
   const {
     weeklyPlans,
@@ -26,6 +29,12 @@ export default function WeeklyPlanPage() {
   } = useWeeklyPlans();
   const router = useRouter();
 
+  const currentPlan = generatedPlan || getCurrentWeekPlan();
+  const nextWeek =
+    weeklyPlans && weeklyPlans.length > 0
+      ? Math.max(...weeklyPlans.map((plan) => plan.week_number)) + 1
+      : 1;
+
   useEffect(() => {
     if (!user && !userLoading) {
       router.push("/onboarding");
@@ -35,6 +44,30 @@ export default function WeeklyPlanPage() {
       loadWeeklyPlans(user.id);
     }
   }, [user, userLoading]);
+
+  useEffect(() => {
+    const loadRecipeProgress = async () => {
+      if (!user || !currentPlan) return;
+
+      const progressMap: Record<string, boolean> = {};
+
+      await Promise.all(
+        currentPlan.recipes.map(async (recipe) => {
+          const progress = await api.getRecipeProgress(
+            user.id,
+            recipe.id,
+            currentPlan.week_number
+          );
+          // Only count as complete if status is "completed"
+          progressMap[recipe.id] = progress?.status === "completed";
+        })
+      );
+
+      setRecipeProgress(progressMap);
+    };
+
+    loadRecipeProgress();
+  }, [user, currentPlan]);
 
   if (userLoading || plansLoading || !user) {
     return (
@@ -48,12 +81,6 @@ export default function WeeklyPlanPage() {
       </div>
     );
   }
-
-  const currentPlan = generatedPlan || getCurrentWeekPlan();
-  const nextWeek =
-    weeklyPlans && weeklyPlans.length > 0
-      ? Math.max(...weeklyPlans.map((plan) => plan.week_number)) + 1
-      : 1;
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[hsl(var(--paprika))]/10 via-[hsl(var(--sage))]/10 to-[hsl(var(--turmeric))]/10">
@@ -72,10 +99,40 @@ export default function WeeklyPlanPage() {
           )}
           {currentPlan ? (
             <div className="py-4">
-              <div className="mb-6 text-center text-lg font-semibold text-primary">
-                Week {currentPlan.week_number}: {currentPlan.recipes.length}{" "}
-                recipes planned
-              </div>
+              {(() => {
+                const completedCount =
+                  Object.values(recipeProgress).filter(Boolean).length;
+                const totalCount = currentPlan.recipes.length;
+                const progressPercentage =
+                  totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
+                return (
+                  <>
+                    <div className="mb-6 space-y-3">
+                      <div className="text-center text-lg font-semibold text-primary">
+                        Week {currentPlan.week_number}: {totalCount} recipes
+                        planned
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm text-muted-foreground">
+                          <span>
+                            {completedCount} of {totalCount} completed
+                          </span>
+                          <span>{Math.round(progressPercentage)}%</span>
+                        </div>
+                        <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
+                            style={{ width: `${progressPercentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
               <div className="grid gap-6 md:grid-cols-2">
                 {currentPlan.recipes.map((recipe) => (
                   <Link
@@ -83,7 +140,15 @@ export default function WeeklyPlanPage() {
                     href={`/recipe/${recipe.id}?week=${currentPlan.week_number}`}
                     className="block group"
                   >
-                    <Card className="overflow-hidden group-hover:shadow-lg transition-shadow h-full flex flex-col">
+                    <Card className="overflow-hidden group-hover:shadow-lg transition-shadow h-full flex flex-col relative">
+                      {/* Completion Badge */}
+                      {recipeProgress[recipe.id] && (
+                        <div className="absolute top-3 right-3 z-10 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1">
+                          <span>✓</span>
+                          <span>Completed</span>
+                        </div>
+                      )}
+
                       {recipe.image_url ? (
                         <div className="w-full h-48 overflow-hidden flex-shrink-0">
                           <img
