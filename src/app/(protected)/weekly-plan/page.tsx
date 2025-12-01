@@ -69,6 +69,30 @@ export default function WeeklyPlanPage() {
     loadRecipeProgress();
   }, [user, currentPlan]);
 
+  // Listen for plan updates from chat
+  useEffect(() => {
+    const handlePlanUpdate = (event: CustomEvent) => {
+      const updatedPlan = event.detail.plan;
+      setGeneratedPlan(updatedPlan);
+      // Reload plans to ensure everything is in sync
+      if (user) {
+        loadWeeklyPlans(user.id);
+      }
+    };
+
+    window.addEventListener(
+      "weeklyPlanUpdated",
+      handlePlanUpdate as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "weeklyPlanUpdated",
+        handlePlanUpdate as EventListener
+      );
+    };
+  }, [user]);
+
   if (userLoading || plansLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-secondary/10">

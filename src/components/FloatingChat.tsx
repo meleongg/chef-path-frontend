@@ -114,19 +114,26 @@ export default function FloatingChat() {
         originalRequest
       );
 
+      // Get recipe names for a better message
+      const recipeNames = updatedPlan.recipes.map((r) => r.name).join(", ");
+
       // Success message with updated plan info
       const confirmMessage: ChatMessage = {
         id: `system-${Date.now()}`,
         sender: "ai",
-        text: `✅ Plan modification complete! Your week ${updatedPlan.week_number} plan has been updated with ${updatedPlan.recipes.length} recipes. Refresh the Weekly Plan page to see the changes.`,
+        text: `✅ Plan modification complete! Your week ${updatedPlan.week_number} plan has been updated with ${updatedPlan.recipes.length} recipes:\n\n${recipeNames}\n\nThe changes are now live on your Weekly Plan page.`,
         timestamp: new Date(),
         type: "plan_modification",
       };
 
       setMessages((prev) => [...prev, confirmMessage]);
 
-      // Optional: Trigger a plan refresh if needed
-      // You could dispatch an event or call a refresh function here
+      // Trigger plan refresh event without full page reload
+      window.dispatchEvent(
+        new CustomEvent("weeklyPlanUpdated", {
+          detail: { plan: updatedPlan },
+        })
+      );
     } catch (err: any) {
       setError(err?.message || "Failed to confirm modification.");
 
@@ -174,7 +181,7 @@ export default function FloatingChat() {
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-gradient-to-br from-[hsl(var(--sage))] to-[hsl(var(--turmeric))] hover:scale-110 z-50"
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-blue-600 hover:bg-blue-700 text-white hover:scale-110 z-50"
           aria-label="Open chat"
         >
           <MessageCircle className="h-6 w-6" />
