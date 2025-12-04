@@ -131,6 +131,14 @@ export interface SubmitFeedbackResponse {
   next_week_unlocked: boolean;
 }
 
+export interface NextWeekEligibility {
+  can_generate: boolean;
+  current_week: number | null;
+  next_week: number | null;
+  completion_status: string;
+  message: string;
+}
+
 // Parsed helper types (for JSON string fields)
 export interface ParsedRecipe extends Omit<Recipe, "ingredients" | "tags"> {
   ingredients: string[];

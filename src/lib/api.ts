@@ -4,6 +4,7 @@ import {
   GeneralChatResponse,
   LoginRequest,
   LoginResponse,
+  NextWeekEligibility,
   Recipe,
   RegisterRequest,
   RegisterResponse,
@@ -101,6 +102,35 @@ export const api = {
       },
       body: JSON.stringify({ initial_intent }),
     });
+    return handleResponse<WeeklyPlanResponse>(response);
+  },
+
+  async checkNextWeekEligibility(
+    userId: string
+  ): Promise<NextWeekEligibility> {
+    const response = await fetch(
+      `${PLAN_BASE_URL}/can_generate_next_week/${userId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+      }
+    );
+    return handleResponse<NextWeekEligibility>(response);
+  },
+
+  async generateNextWeekPlan(userId: string): Promise<WeeklyPlanResponse> {
+    const response = await fetch(
+      `${PLAN_BASE_URL}/generate_next_week/${userId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+      }
+    );
     return handleResponse<WeeklyPlanResponse>(response);
   },
 

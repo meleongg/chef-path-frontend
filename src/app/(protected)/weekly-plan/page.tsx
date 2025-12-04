@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { useUser, useWeeklyPlans } from "@/hooks";
 import { api } from "@/lib/api";
-import { WeeklyPlanResponse } from "@/types";
+import { NextWeekEligibility, WeeklyPlanResponse } from "@/types";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -18,6 +18,8 @@ export default function WeeklyPlanPage() {
   const [recipeProgress, setRecipeProgress] = useState<Record<string, boolean>>(
     {}
   );
+  const [nextWeekEligibility, setNextWeekEligibility] =
+    useState<NextWeekEligibility | null>(null);
   const { user, isLoading: userLoading } = useUser();
   const {
     weeklyPlans,
@@ -68,6 +70,58 @@ export default function WeeklyPlanPage() {
 
     loadRecipeProgress();
   }, [user, currentPlan]);
+
+  useEffect(() => {
+    const checkEligibility = async () => {
+      if (!user) return;
+      try {
+        const eligibility = await api.checkNextWeekEligibility(user.id);
+        setNextWeekEligibility(eligibility);
+      } catch (err) {
+        console.error("Failed to check next week eligibility:", err);
+      }
+    };
+
+    checkEligibility();
+  }, [user, recipeProgress]);
+
+  const handleGenerateNextWeek = async () => {
+    if (!user || !nextWeekEligibility?.can_generate) return;
+
+    setIsGenerating(true);
+    setGenerateError("");
+
+    try {
+      const plan = await api.generateNextWeekPlan(user.id);
+      setGeneratedPlan(plan);
+      await loadWeeklyPlans(user.id);
+    } catch (err: any) {
+      setGenerateError(
+        err?.message || "Failed to generate next week plan. Please try again."
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateInitialWeek = async () => {
+    if (!user) return;
+
+    setIsGenerating(true);
+    setGenerateError("");
+
+    try {
+      const initialIntent = `Create a weekly meal plan for week ${nextWeek} for a user who prefers ${user.cuisine} cuisine, wants ${user.frequency} meals per week, is a ${user.skill_level} cook, and whose goal is ${user.user_goal}.`;
+      const plan = await api.generateWeeklyPlan(user.id, initialIntent);
+      setGeneratedPlan(plan);
+    } catch (err: any) {
+      setGenerateError(
+        err?.message || "Failed to generate weekly plan. Please try again."
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   // Listen for plan updates from chat
   useEffect(() => {
@@ -132,6 +186,43 @@ export default function WeeklyPlanPage() {
 
                 return (
                   <>
+                    {/* Week Completion Banner */}
+                    {nextWeekEligibility?.can_generate && (
+                      <div className="mb-6 p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-500 rounded-lg shadow-md">
+                        <div className="text-center space-y-4">
+                          <div className="text-2xl">🎉</div>
+                          <div>
+                            <h3 className="text-xl font-bold text-green-800 mb-2">
+                              Congratulations! Week {currentPlan.week_number}{" "}
+                              Complete!
+                            </h3>
+                            <p className="text-green-700 mb-4">
+                              You've finished all recipes this week. Ready to
+                              continue your culinary journey?
+                            </p>
+                          </div>
+                          <button
+                            onClick={handleGenerateNextWeek}
+                            disabled={isGenerating}
+                            className="px-8 py-3 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-60 transition-colors"
+                          >
+                            {isGenerating ? (
+                              <span className="flex items-center justify-center">
+                                <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></span>
+                                Generating Week {nextWeekEligibility.next_week}
+                                ...
+                              </span>
+                            ) : (
+                              `Generate Week ${nextWeekEligibility.next_week} Plan`
+                            )}
+                          </button>
+                          <p className="text-sm text-green-600">
+                            Use the chat widget to modify your plan if needed
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="mb-6 space-y-3">
                       <div className="text-center text-lg font-semibold text-primary">
                         Week {currentPlan.week_number}: {totalCount} recipes
@@ -207,41 +298,43 @@ export default function WeeklyPlanPage() {
           ) : (
             <div className="text-center py-8">
               <div className="mb-6 text-lg text-muted-foreground">
-                You don’t have a weekly meal plan yet.
+                {nextWeekEligibility?.message ||
+                  "You don't have a weekly meal plan yet."}
                 <br />
-                Click below to generate your personalized plan and get started!
+                {!nextWeekEligibility?.can_generate &&
+                  nextWeekEligibility?.completion_status && (
+                    <span className="text-sm mt-2 block">
+                      Progress: {nextWeekEligibility.completion_status}
+                    </span>
+                  )}
               </div>
               <button
                 className="px-6 py-3 bg-[hsl(var(--paprika))] text-[hsl(var(--sage))] font-semibold rounded shadow border border-[hsl(var(--sage))] hover:bg-[hsl(var(--paprika))]/90 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--sage))] disabled:opacity-60"
-                onClick={async () => {
-                  setIsGenerating(true);
-                  setGenerateError("");
-                  try {
-                    const initialIntent = `Create a weekly meal plan for week ${nextWeek} for a user who prefers ${user.cuisine} cuisine, wants ${user.frequency} meals per week, is a ${user.skill_level} cook, and whose goal is ${user.user_goal}.`;
-                    const plan = await api.generateWeeklyPlan(
-                      user.id,
-                      initialIntent
-                    );
-                    setGeneratedPlan(plan);
-                  } catch (err: any) {
-                    setGenerateError(
-                      err?.message ||
-                        "Failed to generate weekly plan. Please try again."
-                    );
-                  } finally {
-                    setIsGenerating(false);
-                  }
-                }}
-                disabled={isGenerating}
-                aria-label={`Generate Week ${nextWeek} Plan`}
+                onClick={
+                  nextWeekEligibility?.current_week === null
+                    ? handleGenerateInitialWeek
+                    : handleGenerateNextWeek
+                }
+                disabled={
+                  isGenerating ||
+                  (nextWeekEligibility?.current_week !== null &&
+                    !nextWeekEligibility?.can_generate)
+                }
+                aria-label={
+                  nextWeekEligibility?.current_week === null
+                    ? `Generate Week ${nextWeek} Plan`
+                    : `Generate Week ${nextWeekEligibility?.next_week} Plan`
+                }
               >
                 {isGenerating ? (
                   <span className="flex items-center justify-center">
                     <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-2"></span>
                     Generating...
                   </span>
-                ) : (
+                ) : nextWeekEligibility?.current_week === null ? (
                   `Generate Week ${nextWeek} Plan`
+                ) : (
+                  `Generate Week ${nextWeekEligibility?.next_week} Plan`
                 )}
               </button>
             </div>
