@@ -7,19 +7,27 @@ import { useUser } from "@/hooks";
 import { api } from "@/lib/api";
 import { ChatMessage } from "@/types";
 import { MessageCircle, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export default function FloatingChat() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPulse, setShowPulse] = useState(false);
   const [pendingModificationId, setPendingModificationId] = useState<
     string | null
   >(null);
   const { user } = useUser();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Hide chat on onboarding page
+  if (pathname === "/onboarding") {
+    return null;
+  }
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -29,6 +37,21 @@ export default function FloatingChat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Listen for first plan generation to show pulse animation
+  useEffect(() => {
+    const handleFirstPlan = () => {
+      setShowPulse(true);
+      // Auto-hide pulse after 10 seconds
+      setTimeout(() => setShowPulse(false), 10000);
+    };
+
+    window.addEventListener("firstPlanGenerated", handleFirstPlan);
+
+    return () => {
+      window.removeEventListener("firstPlanGenerated", handleFirstPlan);
+    };
+  }, []);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || !user) return;
@@ -179,13 +202,28 @@ export default function FloatingChat() {
     <>
       {/* Floating Chat Button */}
       {!isOpen && (
-        <Button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-blue-600 hover:bg-blue-700 text-white hover:scale-110 z-50"
-          aria-label="Open chat"
-        >
-          <MessageCircle className="h-6 w-6" />
-        </Button>
+        <div className="fixed bottom-6 right-6 z-50">
+          <Button
+            onClick={() => {
+              setIsOpen(true);
+              setShowPulse(false);
+            }}
+            className={`h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-blue-600 hover:bg-blue-700 text-white hover:scale-110 ${
+              showPulse ? "animate-pulse" : ""
+            }`}
+            aria-label="Open chat"
+          >
+            <MessageCircle className="h-6 w-6" />
+          </Button>
+          {showPulse && (
+            <div className="absolute -top-2 -right-2 flex h-8 w-8">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-8 w-8 bg-green-500 items-center justify-center text-white text-xs font-bold">
+                !
+              </span>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Chat Panel */}

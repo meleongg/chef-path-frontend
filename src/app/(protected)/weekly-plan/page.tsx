@@ -114,6 +114,9 @@ export default function WeeklyPlanPage() {
       const initialIntent = `Create a weekly meal plan for week ${nextWeek} for a user who prefers ${user.cuisine} cuisine, wants ${user.frequency} meals per week, is a ${user.skill_level} cook, and whose goal is ${user.user_goal}.`;
       const plan = await api.generateWeeklyPlan(user.id, initialIntent);
       setGeneratedPlan(plan);
+
+      // Dispatch event to notify FloatingChat to show pulse animation
+      window.dispatchEvent(new CustomEvent("firstPlanGenerated"));
     } catch (err: any) {
       setGenerateError(
         err?.message || "Failed to generate weekly plan. Please try again."
@@ -204,7 +207,7 @@ export default function WeeklyPlanPage() {
                           <button
                             onClick={handleGenerateNextWeek}
                             disabled={isGenerating}
-                            className="px-8 py-3 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-60 transition-colors"
+                            className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-60 transition-all transform hover:scale-105"
                           >
                             {isGenerating ? (
                               <span className="flex items-center justify-center">
@@ -300,19 +303,14 @@ export default function WeeklyPlanPage() {
             </div>
           ) : (
             <div className="text-center py-8">
-              <div className="mb-6 text-lg text-muted-foreground">
-                {nextWeekEligibility?.message ||
-                  "You don't have a weekly meal plan yet."}
-                <br />
-                {!nextWeekEligibility?.can_generate &&
-                  nextWeekEligibility?.completion_status && (
-                    <span className="text-sm mt-2 block">
-                      Progress: {nextWeekEligibility.completion_status}
-                    </span>
-                  )}
+              <div className="mb-6">
+                <p className="text-lg text-muted-foreground mb-2">
+                  {nextWeekEligibility?.message ||
+                    "You don't have a weekly meal plan yet."}
+                </p>
               </div>
               <button
-                className="px-6 py-3 bg-[hsl(var(--paprika))] text-[hsl(var(--sage))] font-semibold rounded shadow border border-[hsl(var(--sage))] hover:bg-[hsl(var(--paprika))]/90 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--sage))] disabled:opacity-60"
+                className="px-8 py-4 bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 text-white font-bold rounded-lg shadow-lg hover:from-orange-600 hover:to-[hsl(var(--paprika))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--paprika))] disabled:opacity-60 disabled:cursor-not-allowed transition-all transform hover:scale-105"
                 onClick={
                   nextWeekEligibility?.current_week === null
                     ? handleGenerateInitialWeek
@@ -330,12 +328,12 @@ export default function WeeklyPlanPage() {
                 }
               >
                 {isGenerating ? (
-                  <span className="flex items-center justify-center">
-                    <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-2"></span>
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
                     Generating...
                   </span>
                 ) : nextWeekEligibility?.current_week === null ? (
-                  `Generate Week ${nextWeek} Plan`
+                  `🚀 Generate Week ${nextWeek} Plan`
                 ) : (
                   `Generate Week ${nextWeekEligibility?.next_week} Plan`
                 )}
