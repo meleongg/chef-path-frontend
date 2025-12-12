@@ -52,11 +52,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <Card className="w-full max-w-md mx-auto shadow-lg border border-[hsl(var(--paprika))]">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[hsl(var(--paprika))]/10 via-[hsl(var(--sage))]/10 to-[hsl(var(--turmeric))]/10">
+      <Card className="w-full max-w-md shadow-cozy border-2 border-[hsl(var(--paprika))] bg-white/90">
         <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold">
-            Login
+          <CardTitle className="text-2xl font-bold text-primary text-center">
+            Login to ChefPath
           </CardTitle>
         </CardHeader>
         <CardContent>

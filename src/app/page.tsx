@@ -40,9 +40,9 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-accent/20 via-background to-primary/15 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50/50 to-[hsl(var(--turmeric))]/20 relative overflow-hidden">
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary))_0%,transparent_25%),radial-gradient(circle_at_70%_80%,hsl(var(--accent))_0%,transparent_25%),radial-gradient(circle_at_40%_60%,hsl(var(--secondary))_0%,transparent_20%)] opacity-5"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--paprika))_0%,transparent_25%),radial-gradient(circle_at_70%_80%,hsl(var(--turmeric))_0%,transparent_25%),radial-gradient(circle_at_40%_60%,hsl(var(--sage))_0%,transparent_20%)] opacity-8"></div>
 
       {/* Navigation Bar */}
       <LandingNavbar />
@@ -54,9 +54,11 @@ export default function Home() {
           <div className="space-y-8">
             {/* Main Heading */}
             <div className="space-y-4">
-              <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+              <h1 className="text-4xl md:text-6xl font-bold leading-tight text-gray-800">
                 Your Personal{" "}
-                <span className="text-primary">Cooking Mentor</span>
+                <span className="bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 bg-clip-text text-transparent">
+                  Cooking Mentor
+                </span>
               </h1>
               <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
                 Get personalized weekly meal plans that adapt to your skill
@@ -70,7 +72,7 @@ export default function Home() {
               <Button
                 onClick={handleGetStarted}
                 size="lg"
-                className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-primary via-primary/90 to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground shadow-cozy hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+                className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-2xl hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
               >
                 <span className="flex items-center gap-3">
                   <span className="text-xl">🚀</span>
@@ -84,17 +86,17 @@ export default function Home() {
 
             {/* Quick Features */}
             <div className="flex flex-wrap gap-6 pt-4">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-primary">✓</span>
-                <span>Personalized plans</span>
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <span className="text-[hsl(var(--paprika))] text-lg">✓</span>
+                <span className="text-gray-700">Personalized plans</span>
               </div>
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-accent">✓</span>
-                <span>Adaptive difficulty</span>
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <span className="text-[hsl(var(--turmeric))] text-lg">✓</span>
+                <span className="text-gray-700">Adaptive difficulty</span>
               </div>
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-secondary">✓</span>
-                <span>Progress tracking</span>
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <span className="text-[hsl(var(--sage))] text-lg">✓</span>
+                <span className="text-gray-700">Progress tracking</span>
               </div>
             </div>
           </div>
@@ -103,12 +105,12 @@ export default function Home() {
           <div className="relative">
             <div className="relative z-10">
               {/* Main Visual Card */}
-              <Card className="bg-gradient-to-br from-primary/10 via-card to-accent/10 border-primary/30 shadow-cozy backdrop-blur-sm">
+              <Card className="bg-white/95 backdrop-blur-sm border-2 border-[hsl(var(--paprika))]/40 shadow-2xl">
                 <CardContent className="p-8">
                   <div className="space-y-6">
                     {/* Header */}
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
+                      <div className="w-8 h-8 bg-gradient-to-br from-[hsl(var(--paprika))]/20 to-orange-200/40 rounded-lg flex items-center justify-center">
                         <span className="text-lg">🍳</span>
                       </div>
                       <div>
@@ -131,8 +133,10 @@ export default function Home() {
                             Easy • 20 min
                           </p>
                         </div>
-                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-                          <span className="text-xs text-primary">✓</span>
+                        <div className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center">
+                          <span className="text-xs text-white font-bold">
+                            ✓
+                          </span>
                         </div>
                       </div>
 
@@ -144,7 +148,7 @@ export default function Home() {
                             Easy • 15 min
                           </p>
                         </div>
-                        <div className="w-6 h-6 rounded-full bg-accent/20 border border-accent/30"></div>
+                        <div className="w-6 h-6 rounded-full bg-[hsl(var(--turmeric))]/30 border-2 border-[hsl(var(--turmeric))]"></div>
                       </div>
 
                       <div className="flex items-center gap-3 p-3 rounded-lg bg-background/30 opacity-60">
@@ -168,16 +172,20 @@ export default function Home() {
             </div>
 
             {/* Background Elements */}
-            <div className="absolute -top-6 -right-6 w-24 h-24 bg-gradient-to-br from-accent/20 to-secondary/20 rounded-full blur-xl"></div>
-            <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full blur-xl"></div>
+            <div className="absolute -top-6 -right-6 w-24 h-24 bg-gradient-to-br from-[hsl(var(--turmeric))]/30 to-orange-300/30 rounded-full blur-xl"></div>
+            <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gradient-to-br from-[hsl(var(--paprika))]/30 to-amber-300/30 rounded-full blur-xl"></div>
           </div>
         </div>
 
         {/* Features Section */}
         <div className="py-16 border-t border-border/20">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Why Choose <span className="text-primary">ChefPath</span>?
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">
+              Why Choose{" "}
+              <span className="bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 bg-clip-text text-transparent">
+                ChefPath
+              </span>
+              ?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Our adaptive cooking system grows with you, making every meal an
@@ -187,42 +195,42 @@ export default function Home() {
 
           {/* Enhanced Feature Cards with Warm Kitchen Colors */}
           <div className="grid md:grid-cols-3 gap-8 mb-16">
-            <Card className="card-recipe hover:shadow-cozy hover:animate-simmer bg-gradient-to-br from-primary/15 via-card to-primary/25 border-primary/40 shadow-warm backdrop-blur-sm">
+            <Card className="hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-amber-50 via-white to-orange-50/50 border-2 border-[hsl(var(--paprika))]/30 shadow-lg">
               <CardContent className="p-8 text-center space-y-4">
-                <div className="w-16 h-16 mx-auto bg-primary/25 rounded-full flex items-center justify-center shadow-inner border-2 border-primary/20">
+                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-[hsl(var(--paprika))]/20 to-orange-200 rounded-full flex items-center justify-center shadow-lg border-2 border-[hsl(var(--paprika))]/30">
                   <span className="text-3xl">📝</span>
                 </div>
-                <h3 className="text-xl font-bold text-primary">
+                <h3 className="text-xl font-bold text-[hsl(var(--paprika))]">
                   Personalized Plans
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-gray-600">
                   Get weekly meal plans tailored to your cuisine preferences and
                   skill level
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="card-recipe hover:shadow-cozy hover:animate-simmer bg-gradient-to-br from-accent/15 via-card to-accent/25 border-accent/40 shadow-warm backdrop-blur-sm">
+            <Card className="hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-yellow-50 via-white to-amber-50/50 border-2 border-[hsl(var(--turmeric))]/40 shadow-lg">
               <CardContent className="p-8 text-center space-y-4">
-                <div className="w-16 h-16 mx-auto bg-accent/25 rounded-full flex items-center justify-center shadow-inner border-2 border-accent/20">
+                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-[hsl(var(--turmeric))]/30 to-amber-200 rounded-full flex items-center justify-center shadow-lg border-2 border-[hsl(var(--turmeric))]/40">
                   <span className="text-3xl">📈</span>
                 </div>
-                <h3 className="text-xl font-bold text-accent-foreground">
+                <h3 className="text-xl font-bold text-amber-700">
                   Adaptive Learning
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-gray-600">
                   Our system adapts to your feedback, making recipes easier or
                   harder as needed
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="card-recipe hover:shadow-cozy hover:animate-simmer bg-gradient-to-br from-secondary/15 via-card to-secondary/25 border-secondary/40 shadow-warm backdrop-blur-sm">
+            <Card className="hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-green-50 via-white to-emerald-50/50 border-2 border-[hsl(var(--sage))]/40 shadow-lg">
               <CardContent className="p-8 text-center space-y-4">
-                <div className="w-16 h-16 mx-auto bg-secondary/25 rounded-full flex items-center justify-center shadow-inner border-2 border-secondary/20">
+                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-[hsl(var(--sage))]/30 to-green-200 rounded-full flex items-center justify-center shadow-lg border-2 border-[hsl(var(--sage))]/40">
                   <span className="text-3xl">🏆</span>
                 </div>
-                <h3 className="text-xl font-bold text-secondary-foreground">
+                <h3 className="text-xl font-bold text-[hsl(var(--sage))]">
                   Track Progress
                 </h3>
                 <p className="text-muted-foreground">
@@ -236,13 +244,13 @@ export default function Home() {
           {/* Enhanced CTA Section with More Color */}
           <div className="relative">
             {/* Background decoration */}
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-secondary/20 rounded-3xl blur-3xl"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-[hsl(var(--paprika))]/20 via-[hsl(var(--turmeric))]/20 to-orange-300/20 rounded-3xl blur-3xl"></div>
 
-            <Card className="relative bg-gradient-to-br from-primary/8 via-background to-accent/12 border-2 border-primary/30 shadow-cozy backdrop-blur-sm">
+            <Card className="relative bg-gradient-to-br from-amber-50/80 via-white to-orange-50/80 border-2 border-[hsl(var(--paprika))]/40 shadow-2xl backdrop-blur-sm">
               <CardContent className="p-12 text-center space-y-8">
                 {/* Main CTA */}
                 <div className="space-y-4">
-                  <h2 className="text-3xl md:text-4xl font-bold text-primary">
+                  <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 bg-clip-text text-transparent">
                     Ready to Start Cooking?
                   </h2>
                   <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -256,7 +264,7 @@ export default function Home() {
                   <Button
                     onClick={handleGetStarted}
                     size="lg"
-                    className="h-20 px-16 text-2xl font-bold bg-gradient-to-r from-primary via-primary/90 to-accent hover:from-primary/90 hover:via-primary hover:to-accent/90 text-primary-foreground shadow-cozy hover:shadow-xl transition-all duration-500 transform hover:scale-105 animate-pulse hover:animate-none border-2 border-primary/30"
+                    className="h-20 px-16 text-2xl font-bold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-2xl hover:shadow-xl transition-all duration-500 transform hover:scale-105 animate-pulse hover:animate-none border-2 border-orange-700/30"
                   >
                     <span className="flex items-center gap-4">
                       <span className="text-3xl animate-bounce">🚀</span>
@@ -278,27 +286,27 @@ export default function Home() {
 
                 {/* Enhanced Trust indicators with more color */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8">
-                  <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 shadow-warm">
+                  <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-gradient-to-br from-[hsl(var(--paprika))]/15 to-orange-100/50 border-2 border-[hsl(var(--paprika))]/30 shadow-lg">
                     <span className="text-2xl">⚡</span>
-                    <span className="font-semibold text-primary">
+                    <span className="font-semibold text-[hsl(var(--paprika))]">
                       Quick Setup
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-gray-600">
                       No complicated forms
                     </span>
                   </div>
-                  <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20 shadow-warm">
+                  <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-gradient-to-br from-[hsl(var(--turmeric))]/15 to-amber-100/50 border-2 border-[hsl(var(--turmeric))]/40 shadow-lg">
                     <span className="text-2xl">🎯</span>
-                    <span className="font-semibold text-accent-foreground">
+                    <span className="font-semibold text-amber-700">
                       Personalized
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-gray-600">
                       Adapts to your skill level
                     </span>
                   </div>
-                  <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 shadow-warm">
+                  <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-gradient-to-br from-[hsl(var(--sage))]/15 to-green-100/50 border-2 border-[hsl(var(--sage))]/40 shadow-lg">
                     <span className="text-2xl">📱</span>
-                    <span className="font-semibold text-secondary-foreground">
+                    <span className="font-semibold text-[hsl(var(--sage))]">
                       Mobile Friendly
                     </span>
                     <span className="text-xs text-muted-foreground">
