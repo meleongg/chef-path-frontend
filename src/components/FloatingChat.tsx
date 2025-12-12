@@ -195,7 +195,7 @@ export default function FloatingChat() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-xl">
                 <span>🍳</span>
-                <span>Cheffy</span>
+                <span>Chefferson</span>
               </CardTitle>
               <Button
                 variant="ghost"

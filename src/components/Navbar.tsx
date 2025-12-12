@@ -31,26 +31,31 @@ export default function Navbar({
       <div className="max-w-4xl mx-auto flex items-center justify-between px-4 py-3">
         <Link
           href="/weekly-plan"
-          className="text-xl font-bold text-primary tracking-tight"
+          className="text-xl font-bold text-[hsl(var(--paprika))] tracking-tight hover:text-orange-600 transition-colors"
         >
           ChefPath
         </Link>
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
           {!showMinimal &&
             navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-base font-medium px-2 py-1 rounded transition-colors duration-150 ${
+                className={`text-base font-medium px-3 py-1.5 rounded-lg transition-all duration-200 ${
                   pathname.startsWith(link.href)
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-accent/20"
+                    ? "bg-[hsl(var(--paprika))]/10 text-[hsl(var(--paprika))] font-semibold"
+                    : "text-gray-600 hover:bg-amber-100/60 hover:text-[hsl(var(--paprika))]"
                 }`}
               >
                 {link.label}
               </Link>
             ))}
-          <Button variant="outline" onClick={handleLogout} aria-label="Logout">
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            aria-label="Logout"
+            className="border-2 border-[hsl(var(--paprika))]/40 text-[hsl(var(--paprika))] hover:bg-[hsl(var(--paprika))] hover:text-white hover:border-[hsl(var(--paprika))] transition-all duration-200 font-semibold"
+          >
             Logout
           </Button>
         </div>
