@@ -86,7 +86,7 @@ export default function RecipePage({
   }
 
   const ingredients = parseHelpers.parseRecipeIngredients(recipe.ingredients);
-  const tags = parseHelpers.parseRecipeTags(recipe.tags);
+  const tags = parseHelpers.parseRecipeTags(recipe.tags || "[]");
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-gradient-to-br from-amber-50 via-orange-50 to-[hsl(var(--turmeric))]/30">

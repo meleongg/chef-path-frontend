@@ -20,6 +20,38 @@ export const COOKING_GOALS = [
     label: "Gain Confidence (e.g., hosting dinner parties, improvising recipes)",
   },
 ];
+
+export const DIETARY_RESTRICTIONS = [
+  { value: "vegetarian", label: "🥗 Vegetarian" },
+  { value: "vegan", label: "🌱 Vegan" },
+  { value: "gluten-free", label: "🌾 Gluten-Free" },
+  { value: "dairy-free", label: "🥛 Dairy-Free" },
+  { value: "keto", label: "🥑 Keto" },
+  { value: "paleo", label: "🍖 Paleo" },
+  { value: "low-carb", label: "🍞 Low-Carb" },
+  { value: "halal", label: "☪️ Halal" },
+  { value: "kosher", label: "✡️ Kosher" },
+];
+
+export const COMMON_ALLERGENS = [
+  { value: "nuts", label: "🥜 Nuts" },
+  { value: "peanuts", label: "🥜 Peanuts" },
+  { value: "shellfish", label: "🦐 Shellfish" },
+  { value: "fish", label: "🐟 Fish" },
+  { value: "eggs", label: "🥚 Eggs" },
+  { value: "dairy", label: "🥛 Dairy" },
+  { value: "soy", label: "🫘 Soy" },
+  { value: "wheat", label: "🌾 Wheat" },
+  { value: "sesame", label: "Sesame" },
+];
+
+export const PORTION_SIZES = [
+  { value: "1", label: "1 serving (Just for me)" },
+  { value: "2", label: "2 servings (Couple)" },
+  { value: "3-4", label: "3-4 servings (Small family)" },
+  { value: "5-6", label: "5-6 servings (Large family)" },
+  { value: "6+", label: "6+ servings (Meal prep/entertaining)" },
+];
 // Cooking app constants
 
 export const CUISINE_OPTIONS = [

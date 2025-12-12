@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -17,7 +18,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { COOKING_GOALS, CUISINE_OPTIONS, SKILL_LEVELS } from "@/constants";
+import {
+  COMMON_ALLERGENS,
+  COOKING_GOALS,
+  CUISINE_OPTIONS,
+  DIETARY_RESTRICTIONS,
+  PORTION_SIZES,
+  SKILL_LEVELS,
+} from "@/constants";
 import { useFormValidation, useUser } from "@/hooks";
 import { UserProfileRequest } from "@/types";
 import { useRouter } from "next/navigation";
@@ -34,15 +42,46 @@ export default function OnboardingPage() {
     frequency: 3,
     skill_level: "",
     user_goal: "",
+    dietary_restrictions: undefined,
+    allergens: undefined,
+    preferred_portion_size: undefined,
+    max_prep_time_minutes: undefined,
+    max_cook_time_minutes: undefined,
   });
 
-  const { cuisine, frequency, skill_level, user_goal } = formData;
+  // Track selected items for multi-select fields
+  const [selectedDietaryRestrictions, setSelectedDietaryRestrictions] =
+    useState<string[]>([]);
+  const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
+
+  const {
+    cuisine,
+    frequency,
+    skill_level,
+    user_goal,
+    preferred_portion_size,
+    max_prep_time_minutes,
+    max_cook_time_minutes,
+  } = formData;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearErrors();
 
-    if (!validateOnboarding(formData)) {
+    // Prepare form data with JSON stringified arrays
+    const submissionData = {
+      ...formData,
+      dietary_restrictions:
+        selectedDietaryRestrictions.length > 0
+          ? JSON.stringify(selectedDietaryRestrictions)
+          : undefined,
+      allergens:
+        selectedAllergens.length > 0
+          ? JSON.stringify(selectedAllergens)
+          : undefined,
+    };
+
+    if (!validateOnboarding(submissionData)) {
       // Show toast for validation errors
       const errorMessages = [];
       if (errors.cuisine) errorMessages.push(`Cuisine: ${errors.cuisine}`);
@@ -61,7 +100,7 @@ export default function OnboardingPage() {
     }
 
     try {
-  const user = await updateUserProfile(formData);
+      const user = await updateUserProfile(submissionData);
       if (user) {
         toast.success("Welcome to ChefPath! 🍳", {
           description: "Your cooking journey starts now!",
@@ -79,10 +118,26 @@ export default function OnboardingPage() {
   };
 
   const updateFormData = (
-  field: keyof UserProfileRequest,
-    value: string | number
+    field: keyof UserProfileRequest,
+    value: string | number | undefined
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const toggleDietaryRestriction = (value: string) => {
+    setSelectedDietaryRestrictions((prev) =>
+      prev.includes(value)
+        ? prev.filter((item) => item !== value)
+        : [...prev, value]
+    );
+  };
+
+  const toggleAllergen = (value: string) => {
+    setSelectedAllergens((prev) =>
+      prev.includes(value)
+        ? prev.filter((item) => item !== value)
+        : [...prev, value]
+    );
   };
 
   return (
@@ -92,14 +147,14 @@ export default function OnboardingPage() {
         <Card className="w-full max-w-2xl card-recipe shadow-cozy overflow-visible">
           <CardHeader className="text-center space-y-4">
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-              <span className="text-3xl">👨‍🍳</span>
+              <span className="text-3xl">🍽️</span>
             </div>
             <CardTitle className="text-3xl font-bold text-primary">
               Welcome to ChefPath!
             </CardTitle>
             <CardDescription className="text-lg text-muted-foreground">
               Your personalized cooking journey starts here. Let's get to know
-              you better so we can create the perfect meal plan just for you! 🍳
+              you better so we can create the perfect meal plan just for you!
             </CardDescription>
           </CardHeader>
 
@@ -293,6 +348,165 @@ export default function OnboardingPage() {
                     {errors.user_goal}
                   </p>
                 )}
+              </div>
+
+              {/* Dietary Restrictions (Optional) */}
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  Do you have any dietary restrictions?{" "}
+                  <span className="text-muted-foreground text-sm">
+                    (Optional)
+                  </span>
+                </Label>
+                <div className="flex flex-wrap gap-2 p-4 bg-muted/30 rounded-lg border border-border/50">
+                  {DIETARY_RESTRICTIONS.map((restriction) => (
+                    <button
+                      key={restriction.value}
+                      type="button"
+                      onClick={() =>
+                        toggleDietaryRestriction(restriction.value)
+                      }
+                      className={`px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                        selectedDietaryRestrictions.includes(restriction.value)
+                          ? "bg-[hsl(var(--sage))] text-white shadow-md"
+                          : "bg-white border border-border hover:border-[hsl(var(--sage))] hover:bg-[hsl(var(--sage))]/10"
+                      }`}
+                    >
+                      {restriction.label}
+                    </button>
+                  ))}
+                </div>
+                {selectedDietaryRestrictions.length > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Selected: {selectedDietaryRestrictions.join(", ")}
+                  </p>
+                )}
+              </div>
+
+              {/* Allergens (Optional) */}
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  Any food allergies we should know about?{" "}
+                  <span className="text-muted-foreground text-sm">
+                    (Optional)
+                  </span>
+                </Label>
+                <div className="flex flex-wrap gap-2 p-4 bg-muted/30 rounded-lg border border-border/50">
+                  {COMMON_ALLERGENS.map((allergen) => (
+                    <button
+                      key={allergen.value}
+                      type="button"
+                      onClick={() => toggleAllergen(allergen.value)}
+                      className={`px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                        selectedAllergens.includes(allergen.value)
+                          ? "bg-red-500 text-white shadow-md"
+                          : "bg-white border border-border hover:border-red-500 hover:bg-red-50"
+                      }`}
+                    >
+                      {allergen.label}
+                    </button>
+                  ))}
+                </div>
+                {selectedAllergens.length > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Selected: {selectedAllergens.join(", ")}
+                  </p>
+                )}
+              </div>
+
+              {/* Portion Size (Optional) */}
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  How many servings do you typically cook?{" "}
+                  <span className="text-muted-foreground text-sm">
+                    (Optional)
+                  </span>
+                </Label>
+                <Select
+                  value={preferred_portion_size}
+                  onValueChange={(value) =>
+                    updateFormData("preferred_portion_size", value)
+                  }
+                >
+                  <SelectTrigger className="h-12 text-base">
+                    <SelectValue placeholder="Select preferred portion size" />
+                  </SelectTrigger>
+                  <SelectContent
+                    position="popper"
+                    sideOffset={5}
+                    className="z-[9999] max-h-[200px] overflow-y-auto min-w-[var(--radix-select-trigger-width)] bg-background border border-border shadow-lg backdrop-blur-none"
+                    style={{
+                      backgroundColor: "hsl(var(--background))",
+                      opacity: 1,
+                    }}
+                  >
+                    {PORTION_SIZES.map((portion) => (
+                      <SelectItem
+                        key={portion.value}
+                        value={portion.value}
+                        className="cursor-pointer border-b border-border/50"
+                      >
+                        {portion.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Time Constraints (Optional) */}
+              <div className="space-y-4">
+                <Label className="text-base font-medium">
+                  Time Constraints{" "}
+                  <span className="text-muted-foreground text-sm">
+                    (Optional)
+                  </span>
+                </Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="max-prep"
+                      className="text-sm text-muted-foreground"
+                    >
+                      Max Prep Time (minutes)
+                    </Label>
+                    <Input
+                      id="max-prep"
+                      type="number"
+                      min="0"
+                      placeholder="e.g., 30"
+                      value={max_prep_time_minutes || ""}
+                      onChange={(e) =>
+                        updateFormData(
+                          "max_prep_time_minutes",
+                          e.target.value ? parseInt(e.target.value) : undefined
+                        )
+                      }
+                      className="h-12"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="max-cook"
+                      className="text-sm text-muted-foreground"
+                    >
+                      Max Cook Time (minutes)
+                    </Label>
+                    <Input
+                      id="max-cook"
+                      type="number"
+                      min="0"
+                      placeholder="e.g., 45"
+                      value={max_cook_time_minutes || ""}
+                      onChange={(e) =>
+                        updateFormData(
+                          "max_cook_time_minutes",
+                          e.target.value ? parseInt(e.target.value) : undefined
+                        )
+                      }
+                      className="h-12"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Error Display */}

@@ -27,11 +27,18 @@ export interface LoginResponse {
 }
 export interface User {
   id: string;
-  name: string;
+  email: string;
+  first_name: string;
+  last_name: string;
   cuisine: string; // "Italian", "Chinese", "Mexican", "American"
   frequency: number; // meals per week (1-7)
   skill_level: string; // "beginner", "intermediate", "advanced"
-  user_goal: string; // e.g., 'techniques', 'cuisine', 'health', 'efficiency', 'confidence'
+  user_goal: string; // e.g., 'Learn New Techniques', 'Master a Cuisine', etc.
+  dietary_restrictions?: string; // JSON array of dietary restrictions (e.g., ['vegetarian', 'gluten-free'])
+  allergens?: string; // JSON array of allergens to avoid (e.g., ['nuts', 'shellfish'])
+  preferred_portion_size?: string; // Preferred serving size (e.g., '2-3', '4', 'family')
+  max_prep_time_minutes?: number; // Maximum acceptable prep time in minutes
+  max_cook_time_minutes?: number; // Maximum acceptable cook time in minutes
   created_at: string;
 }
 
@@ -46,10 +53,16 @@ export interface Recipe {
   name: string;
   cuisine: string;
   ingredients: string; // JSON string of ingredients array
-  instructions: InstructionStep[];
+  instructions: string[] | InstructionStep[]; // Array of strings or structured step objects
   difficulty: string; // "easy", "medium", "hard"
-  tags: string; // JSON string of tags array
-  image_url: string;
+  tags?: string; // JSON string of tags array
+  image_url?: string;
+  dietary_tags?: string; // JSON array of dietary tags (e.g., ['vegetarian', 'gluten-free'])
+  allergens?: string; // JSON array of allergens present (e.g., ['nuts', 'dairy'])
+  portion_size?: string; // Portion size (e.g., '2-3', '4', 'family')
+  prep_time_minutes?: number; // Preparation time in minutes
+  cook_time_minutes?: number; // Cooking time in minutes
+  skill_level_validated?: string; // Validated skill level for this recipe
   created_at: string;
 }
 
@@ -121,6 +134,11 @@ export interface UserProfileRequest {
   frequency: number;
   skill_level: string;
   user_goal: string;
+  dietary_restrictions?: string; // JSON array of dietary restrictions
+  allergens?: string; // JSON array of allergens to avoid
+  preferred_portion_size?: string; // Preferred serving size (e.g., '2-3', '4', 'family')
+  max_prep_time_minutes?: number; // Maximum acceptable prep time in minutes
+  max_cook_time_minutes?: number; // Maximum acceptable cook time in minutes
 }
 
 export interface SubmitFeedbackRequest {
