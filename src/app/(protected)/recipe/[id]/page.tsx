@@ -193,29 +193,20 @@ export default function RecipePage({
               <h3 className="text-xl font-semibold text-primary mb-3">
                 Instructions
               </h3>
-              <ol className="space-y-3 list-none counter-reset">
-                {recipe.instructions
-                  .split("\n")
-                  .filter((step) => step.trim())
-                  .map((step, idx) => {
-                    // Remove existing numbering patterns like "1.", "Step 1:", etc.
-                    const cleanedStep = step
-                      .replace(/^(\d+\.?\s*|\bStep\s+\d+:?\s*)/i, "")
-                      .trim();
-                    return (
-                      <li
-                        key={idx}
-                        className="flex items-start text-muted-foreground"
-                      >
-                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[hsl(var(--paprika))]/20 text-primary font-semibold text-sm mr-3 mt-0.5 flex-shrink-0">
-                          {idx + 1}
-                        </span>
-                        <span className="flex-1 leading-relaxed">
-                          {cleanedStep}
-                        </span>
-                      </li>
-                    );
-                  })}
+              <ol className="space-y-3 list-none">
+                {recipe.instructions.map((step, idx) => (
+                  <li
+                    key={idx}
+                    className="flex items-start text-muted-foreground"
+                  >
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[hsl(var(--paprika))]/20 text-primary font-semibold text-sm mr-3 mt-0.5 flex-shrink-0">
+                      {idx + 1}
+                    </span>
+                    <span className="flex-1 leading-relaxed">
+                      {typeof step === 'string' ? step : step.text}
+                    </span>
+                  </li>
+                ))}
               </ol>
             </div>
           </CardContent>

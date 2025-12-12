@@ -35,13 +35,18 @@ export interface User {
   created_at: string;
 }
 
+export interface InstructionStep {
+  step: number;
+  text: string;
+}
+
 export interface Recipe {
   id: string;
   external_id: string; // TheMealDB ID
   name: string;
   cuisine: string;
   ingredients: string; // JSON string of ingredients array
-  instructions: string;
+  instructions: InstructionStep[];
   difficulty: string; // "easy", "medium", "hard"
   tags: string; // JSON string of tags array
   image_url: string;
