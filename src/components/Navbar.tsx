@@ -14,7 +14,6 @@ export default function Navbar({
   const { dispatch } = useApp();
   const navLinks = [
     { href: "/weekly-plan", label: "Weekly Plan" },
-    { href: "/progress", label: "Progress" },
     // { href: "/profile", label: "Profile" }, // Uncomment if/when profile is implemented
   ];
 

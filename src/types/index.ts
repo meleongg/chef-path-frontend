@@ -76,7 +76,6 @@ export interface UserProgress {
   completed_recipes: number;
   current_week: number;
   completion_rate: number;
-  skill_progression: string; // "advancing", "stable", "needs_support"
 }
 
 // Agent API Endpoints
