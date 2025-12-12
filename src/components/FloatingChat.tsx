@@ -190,26 +190,24 @@ export default function FloatingChat() {
 
       {/* Chat Panel */}
       {isOpen && (
-        <Card className="fixed bottom-6 right-6 w-[400px] h-[600px] shadow-2xl border-2 border-[hsl(var(--paprika))]/30 flex flex-col z-50 animate-in slide-in-from-bottom-4 duration-300 bg-white">
-          <CardHeader className="border-b bg-gradient-to-r from-[hsl(var(--sage))]/10 to-[hsl(var(--turmeric))]/10 flex-shrink-0">
+        <Card className="fixed bottom-6 right-6 w-[400px] h-[600px] shadow-2xl border-2 border-[hsl(var(--paprika))]/60 flex flex-col z-50 animate-in slide-in-from-bottom-4 duration-300 bg-white overflow-hidden">
+          <CardHeader className="border-b bg-white">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-xl">
-                <span>🤖</span>
-                <span>ChefPath Assistant</span>
+                <span>🍳</span>
+                <span>Cheffy</span>
               </CardTitle>
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsOpen(false)}
-                  className="h-8 w-8"
-                  aria-label="Close chat"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsOpen(false)}
+                className="h-8 w-8 hover:bg-amber-100 text-gray-600 hover:text-gray-900"
+                aria-label="Close chat"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-sm text-gray-600 mt-2">
               Ask me anything about cooking, recipes, or your meal plan!
             </p>
           </CardHeader>
@@ -218,8 +216,8 @@ export default function FloatingChat() {
             {/* Messages Container */}
             <div className="flex-1 overflow-y-auto mb-4 space-y-4 pr-2">
               {messages.length === 0 && (
-                <div className="flex items-center justify-center h-full text-center text-muted-foreground">
-                  <div>
+                <div className="flex items-center justify-center h-full text-center">
+                  <div className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-[hsl(var(--paprika))]/30">
                     <p className="text-lg font-medium mb-2">
                       👋 Welcome to ChefPath!
                     </p>
@@ -246,8 +244,8 @@ export default function FloatingChat() {
                   <div
                     className={`max-w-[85%] rounded-lg px-4 py-3 ${
                       message.sender === "user"
-                        ? "bg-blue-600 text-white"
-                        : "bg-muted text-foreground border border-border"
+                        ? "bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-500 text-white shadow-md"
+                        : "bg-gradient-to-br from-gray-50 to-gray-100 text-foreground border-2 border-gray-200 shadow-sm"
                     }`}
                   >
                     {/* Formatted message text */}

@@ -27,8 +27,8 @@ export default function Navbar({
   };
 
   return (
-    <nav className="w-full bg-white/80 border-b border-border shadow-sm sticky top-0 z-50">
-      <div className="max-w-4xl mx-auto flex items-center justify-between px-4 py-2">
+    <nav className="w-full bg-gradient-to-r from-amber-50/80 via-white/80 to-orange-50/80 backdrop-blur-md border-b-2 border-[hsl(var(--paprika))]/20 shadow-md sticky top-0 z-50">
+      <div className="max-w-4xl mx-auto flex items-center justify-between px-4 py-3">
         <Link
           href="/weekly-plan"
           className="text-xl font-bold text-primary tracking-tight"

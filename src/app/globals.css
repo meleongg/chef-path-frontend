@@ -81,6 +81,11 @@
 
 /* Cooking-themed Custom Properties */
 :root {
+  /* Kitchen Color Palette */
+  --paprika: 25 54% 48%; /* Deep paprika red */
+  --sage: 84 22% 56%; /* Sage green */
+  --turmeric: 45 93% 58%; /* Warm turmeric gold */
+
   /* Friendly Spacing Scale */
   --space-cozy: 0.5rem;
   --space-comfortable: 1rem;
@@ -146,7 +151,12 @@
 }
 
 body {
-  background-color: hsl(var(--background));
+  background: linear-gradient(
+    135deg,
+    hsl(var(--background)) 0%,
+    oklch(0.97 0.01 45) 50%,
+    hsl(var(--background)) 100%
+  );
   color: hsl(var(--foreground));
   font-feature-settings: "rlig" 1, "calt" 1;
 }

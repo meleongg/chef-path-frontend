@@ -161,8 +161,8 @@ export default function WeeklyPlanPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[hsl(var(--paprika))]/10 via-[hsl(var(--sage))]/10 to-[hsl(var(--turmeric))]/10">
-      <Card className="w-full max-w-3xl shadow-cozy border-2 border-[hsl(var(--paprika))]/50 bg-white/90">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20">
+      <Card className="w-full max-w-3xl shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-primary">
             Your Weekly Meal Plan
@@ -188,7 +188,7 @@ export default function WeeklyPlanPage() {
                   <>
                     {/* Week Completion Banner */}
                     {nextWeekEligibility?.can_generate && (
-                      <div className="mb-6 p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-500 rounded-lg shadow-md">
+                      <div className="mb-6 p-6 bg-gradient-to-r from-emerald-50 via-green-50 to-teal-50 border-2 border-green-500 rounded-xl shadow-lg">
                         <div className="text-center space-y-4">
                           <div className="text-2xl">🎉</div>
                           <div>
@@ -255,28 +255,31 @@ export default function WeeklyPlanPage() {
                     href={`/recipe/${recipe.id}?week=${currentPlan.week_number}`}
                     className="block group"
                   >
-                    <Card className="overflow-hidden group-hover:shadow-lg transition-shadow h-full flex flex-col relative">
+                    <Card className="overflow-hidden group-hover:shadow-2xl group-hover:border-[hsl(var(--paprika))]/60 transition-all duration-300 h-full flex flex-col relative border-2 border-gray-200">
                       {/* Completion Badge */}
                       {recipeProgress[recipe.id] && (
-                        <div className="absolute top-3 right-3 z-10 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1">
+                        <div className="absolute top-3 right-3 z-10 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1.5">
                           <span>✓</span>
                           <span>Completed</span>
                         </div>
                       )}
 
                       {recipe.image_url ? (
-                        <div className="w-full h-48 overflow-hidden flex-shrink-0">
+                        <div className="w-full h-48 overflow-hidden flex-shrink-0 relative">
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10 group-hover:from-black/30 transition-all" />
                           <img
                             src={recipe.image_url}
                             alt={recipe.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                           />
                         </div>
                       ) : (
-                        <div className="w-full h-48 flex-shrink-0 bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-[hsl(var(--sage))]/20 to-[hsl(var(--turmeric))]/20 flex items-center justify-center">
+                        <div className="w-full h-48 flex-shrink-0 bg-gradient-to-br from-amber-100/80 via-orange-100/80 to-[hsl(var(--turmeric))]/40 flex items-center justify-center group-hover:from-amber-200/80 group-hover:via-orange-200/80 transition-all duration-300">
                           <div className="text-center px-4">
-                            <span className="text-4xl mb-2 block">🍽️</span>
-                            <p className="text-sm font-medium text-muted-foreground">
+                            <span className="text-5xl mb-2 block group-hover:scale-110 transition-transform">
+                              🍽️
+                            </span>
+                            <p className="text-sm font-semibold text-[hsl(var(--paprika))]">
                               {recipe.cuisine}
                             </p>
                           </div>

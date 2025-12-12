@@ -89,17 +89,17 @@ export default function RecipePage({
   const tags = parseHelpers.parseRecipeTags(recipe.tags);
 
   return (
-    <div className="min-h-screen p-4 md:p-8 bg-gradient-to-br from-[hsl(var(--paprika))]/10 via-[hsl(var(--sage))]/10 to-[hsl(var(--turmeric))]/10">
+    <div className="min-h-screen p-4 md:p-8 bg-gradient-to-br from-amber-50 via-orange-50 to-[hsl(var(--turmeric))]/30">
       <div className="max-w-4xl mx-auto">
         <Button
           onClick={() => router.back()}
-          variant="outline"
-          className="mb-4"
+          variant="secondary"
+          className="mb-4 font-semibold text-white bg-[hsl(var(--paprika))] border-none hover:bg-[hsl(var(--primary))]/90 transition-colors duration-200"
         >
           ← Back
         </Button>
 
-        <Card className="shadow-cozy border-2 border-[hsl(var(--paprika))]/50 bg-white/90">
+        <Card className="shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
           <CardHeader>
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-start">
@@ -113,7 +113,7 @@ export default function RecipePage({
                   className={`w-full md:w-auto font-semibold border-2 shadow-md hover:shadow-lg transition-all ${
                     hasFeedback
                       ? "bg-green-600 hover:bg-green-700 text-white border-green-700"
-                      : "bg-[hsl(var(--paprika))] text-[hsl(var(--sage))] border-[hsl(var(--sage))] hover:bg-[hsl(var(--paprika))]/90"
+                      : "bg-[hsl(var(--paprika))] text-white border-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 transition-colors duration-200"
                   }`}
                   size="lg"
                 >
