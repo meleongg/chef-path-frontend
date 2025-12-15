@@ -1,15 +1,18 @@
 import {
   AdaptiveChatResponse,
+  ChangePasswordRequest,
   GeneralChatRequest,
   GeneralChatResponse,
   LoginRequest,
   LoginResponse,
+  MessageResponse,
   NextWeekEligibility,
   Recipe,
   RegisterRequest,
   RegisterResponse,
   SubmitFeedbackRequest,
   SubmitFeedbackResponse,
+  UpdateAccountRequest,
   User,
   UserProfileRequest,
   UserProgress,
@@ -209,6 +212,51 @@ export const api = {
     });
 
     return handleResponse<User>(response);
+  },
+
+  // Account Management
+  async updateAccount(
+    userId: string,
+    accountData: UpdateAccountRequest
+  ): Promise<User> {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/account`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(accountData),
+    });
+
+    return handleResponse<User>(response);
+  },
+
+  async changePassword(
+    userId: string,
+    passwordData: ChangePasswordRequest
+  ): Promise<MessageResponse> {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/password`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(passwordData),
+    });
+
+    return handleResponse<MessageResponse>(response);
+  },
+
+  async deleteAccount(userId: string): Promise<MessageResponse> {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+    });
+
+    return handleResponse<MessageResponse>(response);
   },
 
   async getAllUsers(): Promise<User[]> {

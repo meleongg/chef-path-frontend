@@ -14,7 +14,8 @@ export default function Navbar({
   const { dispatch } = useApp();
   const navLinks = [
     { href: "/weekly-plan", label: "Weekly Plan" },
-    // { href: "/profile", label: "Profile" }, // Uncomment if/when profile is implemented
+    { href: "/settings/preferences", label: "Preferences" },
+    { href: "/settings/account", label: "Account" },
   ];
 
   const handleLogout = () => {

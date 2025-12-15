@@ -141,6 +141,21 @@ export interface UserProfileRequest {
   max_cook_time_minutes?: number; // Maximum acceptable cook time in minutes
 }
 
+export interface UpdateAccountRequest {
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+}
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
+export interface MessageResponse {
+  message: string;
+}
+
 export interface SubmitFeedbackRequest {
   user_id: string;
   recipe_id: string;
