@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 
-import { useUser, useWeeklyPlans } from "@/hooks";
+import { useUser, useWeeklyPlans, useWeeklyRecipeProgress } from "@/hooks";
 import { api } from "@/lib/api";
 import { NextWeekEligibility, WeeklyPlanResponse } from "@/types";
 import { useRouter } from "next/navigation";
@@ -14,9 +14,6 @@ export default function WeeklyPlanPage() {
   const [generateError, setGenerateError] = useState("");
   const [generatedPlan, setGeneratedPlan] = useState<WeeklyPlanResponse | null>(
     null
-  );
-  const [recipeProgress, setRecipeProgress] = useState<Record<string, boolean>>(
-    {}
   );
   const [nextWeekEligibility, setNextWeekEligibility] =
     useState<NextWeekEligibility | null>(null);
@@ -29,6 +26,8 @@ export default function WeeklyPlanPage() {
     loadWeeklyPlans,
     getCurrentWeekPlan,
   } = useWeeklyPlans();
+  const { isRecipeCompleted, loadWeeklyRecipeProgress } =
+    useWeeklyRecipeProgress();
   const router = useRouter();
 
   const currentPlan = generatedPlan || getCurrentWeekPlan();
@@ -47,30 +46,7 @@ export default function WeeklyPlanPage() {
     }
   }, [user, userLoading]);
 
-  useEffect(() => {
-    const loadRecipeProgress = async () => {
-      if (!user || !currentPlan) return;
-
-      const progressMap: Record<string, boolean> = {};
-
-      await Promise.all(
-        currentPlan.recipes.map(async (recipe) => {
-          const progress = await api.getRecipeProgress(
-            user.id,
-            recipe.id,
-            currentPlan.week_number
-          );
-          // Only count as complete if status is "completed"
-          progressMap[recipe.id] = progress?.status === "completed";
-        })
-      );
-
-      setRecipeProgress(progressMap);
-    };
-
-    loadRecipeProgress();
-  }, [user, currentPlan]);
-
+  // Check eligibility when recipe progress changes
   useEffect(() => {
     const checkEligibility = async () => {
       if (!user) return;
@@ -83,7 +59,7 @@ export default function WeeklyPlanPage() {
     };
 
     checkEligibility();
-  }, [user, recipeProgress]);
+  }, [user, currentPlan]);
 
   const handleGenerateNextWeek = async () => {
     if (!user || !nextWeekEligibility?.can_generate) return;
@@ -95,6 +71,8 @@ export default function WeeklyPlanPage() {
       const plan = await api.generateNextWeekPlan(user.id);
       setGeneratedPlan(plan);
       await loadWeeklyPlans(user.id);
+      // Load progress for the new week
+      await loadWeeklyRecipeProgress(user.id, plan.week_number);
     } catch (err: any) {
       setGenerateError(
         err?.message || "Failed to generate next week plan. Please try again."
@@ -114,6 +92,8 @@ export default function WeeklyPlanPage() {
       const initialIntent = `Create a weekly meal plan for week ${nextWeek} for a user who prefers ${user.cuisine} cuisine, wants ${user.frequency} meals per week, is a ${user.skill_level} cook, and whose goal is ${user.user_goal}.`;
       const plan = await api.generateWeeklyPlan(user.id, initialIntent);
       setGeneratedPlan(plan);
+      // Load progress for the new week
+      await loadWeeklyRecipeProgress(user.id, plan.week_number);
 
       // Dispatch event to notify FloatingChat to show pulse animation
       window.dispatchEvent(new CustomEvent("firstPlanGenerated"));
@@ -181,8 +161,9 @@ export default function WeeklyPlanPage() {
           {currentPlan ? (
             <div className="py-4">
               {(() => {
-                const completedCount =
-                  Object.values(recipeProgress).filter(Boolean).length;
+                const completedCount = currentPlan.recipes.filter((recipe) =>
+                  isRecipeCompleted(recipe.id, currentPlan.week_number)
+                ).length;
                 const totalCount = currentPlan.recipes.length;
                 const progressPercentage =
                   totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
@@ -260,7 +241,10 @@ export default function WeeklyPlanPage() {
                   >
                     <Card className="overflow-hidden group-hover:shadow-2xl group-hover:border-[hsl(var(--paprika))]/60 transition-all duration-300 h-full flex flex-col relative border-2 border-gray-200">
                       {/* Completion Badge */}
-                      {recipeProgress[recipe.id] && (
+                      {isRecipeCompleted(
+                        recipe.id,
+                        currentPlan.week_number
+                      ) && (
                         <div className="absolute top-3 right-3 z-10 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1.5">
                           <span>✓</span>
                           <span>Completed</span>

@@ -4,9 +4,8 @@ import RecipeFeedbackForm from "@/components/RecipeFeedbackForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useUser } from "@/hooks";
-import { api, parseHelpers } from "@/lib/api";
-import { Recipe } from "@/types";
+import { useRecipes, useUser, useWeeklyRecipeProgress } from "@/hooks";
+import { parseHelpers } from "@/lib/api";
 import { useRouter, useSearchParams } from "next/navigation";
 import { use, useEffect, useState } from "react";
 
@@ -18,48 +17,26 @@ export default function RecipePage({
   const resolvedParams = use(params);
   const searchParams = useSearchParams();
   const weekNumber = parseInt(searchParams.get("week") || "1");
-  const [recipe, setRecipe] = useState<Recipe | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
-  const [existingFeedback, setExistingFeedback] = useState<any>(null);
-  const [hasFeedback, setHasFeedback] = useState(false);
   const { user } = useUser();
+  const { getRecipe, getRecipeFromCache } = useRecipes();
+  const { getRecipeProgress, isRecipeCompleted } = useWeeklyRecipeProgress();
   const router = useRouter();
 
+  // Get recipe from cache or load it
+  const recipe = getRecipeFromCache(resolvedParams.id);
+  const existingFeedback = getRecipeProgress(resolvedParams.id, weekNumber);
+  const hasFeedback = isRecipeCompleted(resolvedParams.id, weekNumber);
+
   useEffect(() => {
-    const loadRecipe = async () => {
-      try {
-        setIsLoading(true);
-        const recipeData = await api.getRecipe(resolvedParams.id);
-        setRecipe(recipeData);
-
-        // Fetch existing feedback if user is logged in
-        if (user) {
-          const feedback = await api.getRecipeProgress(
-            user.id,
-            resolvedParams.id,
-            weekNumber
-          );
-          if (feedback) {
-            setExistingFeedback(feedback);
-            // Only mark as having feedback if status is completed
-            setHasFeedback(feedback.status === "completed");
-          }
-        }
-      } catch (err: any) {
-        setError(err?.message || "Failed to load recipe");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (resolvedParams.id) {
-      loadRecipe();
+    // Only fetch if not in cache
+    if (!recipe && resolvedParams.id) {
+      getRecipe(resolvedParams.id);
     }
-  }, [resolvedParams.id, user, weekNumber]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolvedParams.id, recipe]);
 
-  if (isLoading) {
+  if (!recipe) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-secondary/10">
         <div className="text-center">
@@ -70,23 +47,16 @@ export default function RecipePage({
     );
   }
 
-  if (error || !recipe) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-2xl">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-red-600 mb-4">{error || "Recipe not found"}</p>
-              <Button onClick={() => router.back()}>Go Back</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   const ingredients = parseHelpers.parseRecipeIngredients(recipe.ingredients);
-  const tags = parseHelpers.parseRecipeTags(recipe.tags || "[]");
+  const instructions = parseHelpers.parseRecipeInstructions(
+    recipe.instructions
+  );
+  const dietaryTags = recipe.dietary_tags
+    ? parseHelpers.parseRecipeTags(recipe.dietary_tags)
+    : [];
+  const allergens = recipe.allergens
+    ? parseHelpers.parseRecipeTags(recipe.allergens)
+    : [];
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-gradient-to-br from-amber-50 via-orange-50 to-[hsl(var(--turmeric))]/30">
@@ -136,7 +106,7 @@ export default function RecipePage({
               />
             )}
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="font-semibold text-primary">Cuisine:</span>
                 <p className="text-muted-foreground">{recipe.cuisine}</p>
@@ -147,22 +117,68 @@ export default function RecipePage({
                   {recipe.difficulty}
                 </p>
               </div>
-              {tags && tags.length > 0 && (
-                <div className="col-span-2 md:col-span-1">
-                  <span className="font-semibold text-primary">Tags:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {tags.map((tag, idx) => (
-                      <span
-                        key={idx}
-                        className="text-xs bg-[hsl(var(--sage))]/20 text-primary px-2 py-1 rounded"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+              {recipe.prep_time_minutes && (
+                <div>
+                  <span className="font-semibold text-primary">Prep Time:</span>
+                  <p className="text-muted-foreground">
+                    {recipe.prep_time_minutes} min
+                  </p>
+                </div>
+              )}
+              {recipe.cook_time_minutes && (
+                <div>
+                  <span className="font-semibold text-primary">Cook Time:</span>
+                  <p className="text-muted-foreground">
+                    {recipe.cook_time_minutes} min
+                  </p>
+                </div>
+              )}
+              {recipe.portion_size && (
+                <div>
+                  <span className="font-semibold text-primary">Serves:</span>
+                  <p className="text-muted-foreground">{recipe.portion_size}</p>
                 </div>
               )}
             </div>
+
+            {(dietaryTags.length > 0 || allergens.length > 0) && (
+              <div className="space-y-3">
+                {dietaryTags.length > 0 && (
+                  <div>
+                    <span className="font-semibold text-primary text-sm">
+                      Dietary:
+                    </span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {dietaryTags.map((tag, idx) => (
+                        <span
+                          key={idx}
+                          className="text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {allergens.length > 0 && (
+                  <div>
+                    <span className="font-semibold text-primary text-sm">
+                      Allergens:
+                    </span>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {allergens.map((allergen, idx) => (
+                        <span
+                          key={idx}
+                          className="text-xs bg-red-100 text-red-800 px-3 py-1 rounded-full font-medium"
+                        >
+                          ⚠️ {allergen}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div>
               <h3 className="text-xl font-semibold text-primary mb-3">
@@ -194,7 +210,7 @@ export default function RecipePage({
                 Instructions
               </h3>
               <ol className="space-y-3 list-none">
-                {recipe.instructions.map((step, idx) => (
+                {instructions.map((step, idx) => (
                   <li
                     key={idx}
                     className="flex items-start text-muted-foreground"
@@ -203,7 +219,7 @@ export default function RecipePage({
                       {idx + 1}
                     </span>
                     <span className="flex-1 leading-relaxed">
-                      {typeof step === 'string' ? step : step.text}
+                      {typeof step === "string" ? step : step.text}
                     </span>
                   </li>
                 ))}
@@ -219,18 +235,9 @@ export default function RecipePage({
                 recipeId={recipe.id}
                 weekNumber={weekNumber}
                 existingFeedback={existingFeedback}
-                onFeedbackSubmitted={async () => {
+                onFeedbackSubmitted={() => {
                   setShowFeedbackForm(false);
-                  // Refresh feedback after submission
-                  const feedback = await api.getRecipeProgress(
-                    user.id,
-                    recipe.id,
-                    weekNumber
-                  );
-                  if (feedback) {
-                    setExistingFeedback(feedback);
-                    setHasFeedback(feedback.status === "completed");
-                  }
+                  // Progress is now automatically updated via useFeedback hook
                 }}
               />
             </DialogContent>

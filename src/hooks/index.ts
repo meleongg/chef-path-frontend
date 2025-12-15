@@ -4,10 +4,12 @@ import { actions, useApp } from "@/contexts/AppContext";
 import { api, parseHelpers } from "@/lib/api";
 import {
   ParsedRecipe,
+  Recipe,
   SubmitFeedbackRequest,
   User,
   UserProfileRequest,
   UserProgress,
+  UserRecipeProgress,
   WeeklyPlan,
 } from "@/types";
 import { useState } from "react";
@@ -136,57 +138,124 @@ export function useWeeklyPlans() {
   };
 }
 
-// Hook for managing recipes
+// Hook for managing recipes with context caching
 export function useRecipes() {
-  const [recipeCache, setRecipeCache] = useState<Map<string, ParsedRecipe>>(
-    new Map()
-  );
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { state, dispatch } = useApp();
 
-  const getRecipe = async (recipeId: string): Promise<ParsedRecipe | null> => {
-    // Check cache first
-    if (recipeCache.has(recipeId)) {
-      return recipeCache.get(recipeId)!;
+  const getRecipe = async (recipeId: string): Promise<Recipe | null> => {
+    // Check context cache first
+    if (state.recipes[recipeId]) {
+      return state.recipes[recipeId];
     }
 
     try {
-      setIsLoading(true);
-      setError(null);
+      dispatch(actions.setLoading(true));
+      dispatch(actions.setError(null));
 
       const recipe = await api.getRecipe(recipeId);
+      dispatch(actions.setRecipe(recipe));
 
-      // Parse JSON fields
-      const parsedRecipe: ParsedRecipe = {
-        ...recipe,
-        ingredients: parseHelpers.parseRecipeIngredients(recipe.ingredients),
-        tags: parseHelpers.parseRecipeTags(recipe.tags),
-      };
-
-      // Update cache
-      setRecipeCache((prev) => new Map(prev).set(recipeId, parsedRecipe));
-
-      return parsedRecipe;
+      return recipe;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to load recipe";
-      setError(errorMessage);
+      dispatch(actions.setError(errorMessage));
       return null;
     } finally {
-      setIsLoading(false);
+      dispatch(actions.setLoading(false));
     }
   };
 
-  const getRecipeFromCache = (recipeId: string): ParsedRecipe | null => {
-    return recipeCache.get(recipeId) || null;
+  const getRecipeFromCache = (recipeId: string): Recipe | null => {
+    return state.recipes[recipeId] || null;
+  };
+
+  const getParsedRecipe = (recipe: Recipe): ParsedRecipe => {
+    return {
+      ...recipe,
+      ingredients: parseHelpers.parseRecipeIngredients(recipe.ingredients),
+      tags: parseHelpers.parseRecipeTags(recipe.tags || "[]"),
+    };
   };
 
   return {
-    isLoading,
-    error,
+    isLoading: state.isLoading,
+    error: state.error,
     getRecipe,
     getRecipeFromCache,
-    recipeCache: Array.from(recipeCache.values()),
+    getParsedRecipe,
+  };
+}
+
+// Hook for managing weekly recipe progress
+export function useWeeklyRecipeProgress() {
+  const { state, dispatch } = useApp();
+
+  const loadWeeklyRecipeProgress = async (
+    userId: string,
+    weekNumber: number
+  ): Promise<void> => {
+    try {
+      dispatch(actions.setLoading(true));
+      dispatch(actions.setError(null));
+
+      // Get current week's plan to find recipe IDs
+      const weekPlan = state.weeklyPlans.find(
+        (plan) => plan.week_number === weekNumber
+      );
+
+      if (!weekPlan) {
+        dispatch(actions.setLoading(false));
+        return;
+      }
+
+      // Batch fetch all recipe progress
+      const progressPromises = weekPlan.recipes.map((recipe) =>
+        api.getRecipeProgress(userId, recipe.id, weekNumber)
+      );
+
+      const progressResults = await Promise.all(progressPromises);
+
+      // Filter nulls and store in context
+      const validProgress = progressResults.filter(
+        (p) => p !== null
+      ) as UserRecipeProgress[];
+
+      dispatch(actions.setWeeklyRecipeProgress(validProgress));
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to load recipe progress";
+      dispatch(actions.setError(errorMessage));
+    } finally {
+      dispatch(actions.setLoading(false));
+    }
+  };
+
+  const getRecipeProgress = (
+    recipeId: string,
+    weekNumber: number
+  ): UserRecipeProgress | null => {
+    return (
+      state.weeklyRecipeProgress.find(
+        (p) => p.recipe_id === recipeId && p.week_number === weekNumber
+      ) || null
+    );
+  };
+
+  const isRecipeCompleted = (recipeId: string, weekNumber: number): boolean => {
+    const progress = getRecipeProgress(recipeId, weekNumber);
+    return progress?.status === "completed";
+  };
+
+  return {
+    weeklyRecipeProgress: state.weeklyRecipeProgress,
+    isLoading: state.isLoading,
+    error: state.error,
+    loadWeeklyRecipeProgress,
+    getRecipeProgress,
+    isRecipeCompleted,
   };
 }
 
@@ -203,6 +272,17 @@ export function useFeedback() {
       dispatch(actions.setError(null));
 
       const response = await api.submitFeedback(feedbackData);
+
+      // Reload recipe progress to get updated status
+      const updatedProgress = await api.getRecipeProgress(
+        feedbackData.user_id,
+        feedbackData.recipe_id,
+        feedbackData.week_number
+      );
+
+      if (updatedProgress) {
+        dispatch(actions.updateRecipeProgress(updatedProgress));
+      }
 
       // If next week was unlocked, refresh weekly plans
       if (response.next_week_unlocked && state.user) {

@@ -105,9 +105,7 @@ export const api = {
     return handleResponse<WeeklyPlanResponse>(response);
   },
 
-  async checkNextWeekEligibility(
-    userId: string
-  ): Promise<NextWeekEligibility> {
+  async checkNextWeekEligibility(userId: string): Promise<NextWeekEligibility> {
     const response = await fetch(
       `${PLAN_BASE_URL}/can_generate_next_week/${userId}`,
       {
@@ -377,6 +375,24 @@ export const parseHelpers = {
       console.error("Failed to parse recipe IDs:", error);
       return [];
     }
+  },
+  parseRecipeInstructions(instructionsJson: string | any[]): any[] {
+    // If already an array, return it
+    if (Array.isArray(instructionsJson)) {
+      return instructionsJson;
+    }
+
+    // If it's a string, parse it
+    if (typeof instructionsJson === "string") {
+      try {
+        return JSON.parse(instructionsJson);
+      } catch (error) {
+        console.error("Failed to parse instructions:", error);
+        return [];
+      }
+    }
+
+    return [];
   },
 };
 

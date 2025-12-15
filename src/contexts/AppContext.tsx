@@ -1,6 +1,12 @@
 "use client";
 
-import { User, UserProgress, UserRecipeProgress, WeeklyPlan } from "@/types";
+import {
+  Recipe,
+  User,
+  UserProgress,
+  UserRecipeProgress,
+  WeeklyPlan,
+} from "@/types";
 import React, { createContext, ReactNode, useContext, useReducer } from "react";
 
 // App State Interface
@@ -10,6 +16,7 @@ interface AppState {
   weeklyPlans: WeeklyPlan[];
   userProgress: UserProgress | null;
   weeklyRecipeProgress: UserRecipeProgress[];
+  recipes: Record<string, Recipe>; // Cache individual recipes by ID
   isLoading: boolean;
   error: string | null;
 }
@@ -24,6 +31,8 @@ type AppAction =
   | { type: "SET_USER_PROGRESS"; payload: UserProgress | null }
   | { type: "SET_WEEKLY_RECIPE_PROGRESS"; payload: UserRecipeProgress[] }
   | { type: "UPDATE_WEEKLY_PLAN"; payload: WeeklyPlan }
+  | { type: "SET_RECIPE"; payload: Recipe }
+  | { type: "UPDATE_RECIPE_PROGRESS"; payload: UserRecipeProgress }
   | { type: "RESET_STATE" };
 
 // Initial State
@@ -33,6 +42,7 @@ const initialState: AppState = {
   weeklyPlans: [],
   userProgress: null,
   weeklyRecipeProgress: [],
+  recipes: {},
   isLoading: false,
   error: null,
 };
@@ -69,6 +79,34 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         weeklyRecipeProgress: action.payload,
+      };
+
+    case "SET_RECIPE":
+      return {
+        ...state,
+        recipes: {
+          ...state.recipes,
+          [action.payload.id]: action.payload,
+        },
+      };
+
+    case "UPDATE_RECIPE_PROGRESS":
+      const existingIndex = state.weeklyRecipeProgress.findIndex(
+        (p) =>
+          p.recipe_id === action.payload.recipe_id &&
+          p.week_number === action.payload.week_number
+      );
+
+      const updatedProgress =
+        existingIndex >= 0
+          ? state.weeklyRecipeProgress.map((p, i) =>
+              i === existingIndex ? action.payload : p
+            )
+          : [...state.weeklyRecipeProgress, action.payload];
+
+      return {
+        ...state,
+        weeklyRecipeProgress: updatedProgress,
       };
 
     case "RESET_STATE":
@@ -148,6 +186,16 @@ export const actions = {
   updateWeeklyPlan: (plan: WeeklyPlan): AppAction => ({
     type: "UPDATE_WEEKLY_PLAN",
     payload: plan,
+  }),
+
+  setRecipe: (recipe: Recipe): AppAction => ({
+    type: "SET_RECIPE",
+    payload: recipe,
+  }),
+
+  updateRecipeProgress: (progress: UserRecipeProgress): AppAction => ({
+    type: "UPDATE_RECIPE_PROGRESS",
+    payload: progress,
   }),
 
   resetState: (): AppAction => ({
