@@ -137,26 +137,17 @@ export default function FloatingChat() {
         originalRequest
       );
 
-      // Get recipe names for a better message
-      const recipeNames = updatedPlan.recipes.map((r) => r.name).join(", ");
-
-      // Success message with updated plan info
+      // Success message
       const confirmMessage: ChatMessage = {
         id: `system-${Date.now()}`,
         sender: "ai",
-        text: `✅ Plan modification complete! Your week ${updatedPlan.week_number} plan has been updated with ${updatedPlan.recipes.length} recipes:\n\n${recipeNames}\n\nThe changes are now live on your Weekly Plan page.`,
+        text: `✅ Plan modification complete! Your week ${updatedPlan.week_number} plan has been updated.\n\nClick the button below to refresh and see your changes.`,
         timestamp: new Date(),
         type: "plan_modification",
       };
+      (confirmMessage as any).showRefreshButton = true;
 
       setMessages((prev) => [...prev, confirmMessage]);
-
-      // Trigger plan refresh event without full page reload
-      window.dispatchEvent(
-        new CustomEvent("weeklyPlanUpdated", {
-          detail: { plan: updatedPlan },
-        })
-      );
     } catch (err: any) {
       setError(err?.message || "Failed to confirm modification.");
 
@@ -387,6 +378,26 @@ export default function FloatingChat() {
                             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
                           >
                             {isLoading ? "Processing..." : "Confirm Changes"}
+                          </Button>
+                        </div>
+                      )}
+
+                    {/* Refresh Button for Successful Plan Modifications */}
+                    {message.sender === "ai" &&
+                      (message as any).showRefreshButton && (
+                        <div className="mt-3 pt-3 border-t border-gray-300">
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              if (pathname === "/weekly-plan") {
+                                window.location.reload();
+                              } else {
+                                window.location.href = "/weekly-plan";
+                              }
+                            }}
+                            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
+                          >
+                            🔄 Refresh Plan Page
                           </Button>
                         </div>
                       )}
