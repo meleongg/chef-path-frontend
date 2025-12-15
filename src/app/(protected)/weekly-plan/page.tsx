@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useUser, useWeeklyPlans, useWeeklyRecipeProgress } from "@/hooks";
 import { api } from "@/lib/api";
 import { NextWeekEligibility, WeeklyPlanResponse } from "@/types";
+import { Check, PartyPopper, Rocket, UtensilsCrossed } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -157,7 +158,9 @@ export default function WeeklyPlanPage() {
                     {nextWeekEligibility?.can_generate && (
                       <div className="mb-6 p-6 bg-gradient-to-r from-emerald-50 via-green-50 to-teal-50 border-2 border-green-500 rounded-xl shadow-lg">
                         <div className="text-center space-y-4">
-                          <div className="text-2xl">🎉</div>
+                          <div className="flex justify-center">
+                            <PartyPopper className="w-12 h-12 text-green-600" />
+                          </div>
                           <div>
                             <h3 className="text-xl font-bold text-green-800 mb-2">
                               Congratulations! Week {currentPlan.week_number}{" "}
@@ -229,7 +232,7 @@ export default function WeeklyPlanPage() {
                         currentPlan.week_number
                       ) && (
                         <div className="absolute top-3 right-3 z-10 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1.5">
-                          <span>✓</span>
+                          <Check className="w-3 h-3" />
                           <span>Completed</span>
                         </div>
                       )}
@@ -246,9 +249,7 @@ export default function WeeklyPlanPage() {
                       ) : (
                         <div className="w-full h-48 flex-shrink-0 bg-gradient-to-br from-amber-100/80 via-orange-100/80 to-[hsl(var(--turmeric))]/40 flex items-center justify-center group-hover:from-amber-200/80 group-hover:via-orange-200/80 transition-all duration-300">
                           <div className="text-center px-4">
-                            <span className="text-5xl mb-2 block group-hover:scale-110 transition-transform">
-                              🍽️
-                            </span>
+                            <UtensilsCrossed className="w-16 h-16 mx-auto mb-2 text-[hsl(var(--paprika))] group-hover:scale-110 transition-transform" />
                             <p className="text-sm font-semibold text-[hsl(var(--paprika))]">
                               {recipe.cuisine}
                             </p>
@@ -302,7 +303,10 @@ export default function WeeklyPlanPage() {
                       Generating...
                     </span>
                   ) : nextWeekEligibility?.current_week === null ? (
-                    `🚀 Generate Week ${nextWeek} Plan`
+                    <span className="flex items-center justify-center gap-2">
+                      <Rocket className="w-5 h-5" />
+                      Generate Week {nextWeek} Plan
+                    </span>
                   ) : (
                     `Generate Week ${nextWeekEligibility?.next_week} Plan`
                   )}

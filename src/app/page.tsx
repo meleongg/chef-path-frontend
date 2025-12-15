@@ -5,6 +5,19 @@ import LandingNavbar from "@/components/LandingNavbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useUser } from "@/hooks";
+import {
+  Check,
+  ChefHat,
+  Clock,
+  FileText,
+  Rocket,
+  Smartphone,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Trophy,
+  Zap,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -60,10 +73,11 @@ export default function Home() {
                   Cooking Mentor
                 </span>
               </h1>
-              <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
+              <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed flex items-center gap-2">
                 Get personalized weekly meal plans that adapt to your skill
                 level, preferences, and feedback. Learn to cook at your own
-                pace! 🍳
+                pace!
+                <ChefHat className="w-6 h-6 inline" />
               </p>
             </div>
 
@@ -75,27 +89,28 @@ export default function Home() {
                 className="h-14 px-8 text-lg font-bold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-2xl hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
               >
                 <span className="flex items-center gap-3">
-                  <span className="text-xl">🚀</span>
+                  <Rocket className="w-5 h-5" />
                   Start Your Cooking Journey
                 </span>
               </Button>
-              <p className="text-sm text-muted-foreground">
-                ⏱️ Takes less than 2 minutes • No credit card required
+              <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                <Clock className="w-4 h-4" />
+                Takes less than 2 minutes • No credit card required
               </p>
             </div>
 
             {/* Quick Features */}
             <div className="flex flex-wrap gap-6 pt-4">
               <div className="flex items-center gap-2 text-sm font-medium">
-                <span className="text-[hsl(var(--paprika))] text-lg">✓</span>
+                <Check className="w-5 h-5 text-[hsl(var(--paprika))]" />
                 <span className="text-gray-700">Personalized plans</span>
               </div>
               <div className="flex items-center gap-2 text-sm font-medium">
-                <span className="text-[hsl(var(--turmeric))] text-lg">✓</span>
+                <Check className="w-5 h-5 text-[hsl(var(--turmeric))]" />
                 <span className="text-gray-700">Adaptive difficulty</span>
               </div>
               <div className="flex items-center gap-2 text-sm font-medium">
-                <span className="text-[hsl(var(--sage))] text-lg">✓</span>
+                <Check className="w-5 h-5 text-[hsl(var(--sage))]" />
                 <span className="text-gray-700">Progress tracking</span>
               </div>
             </div>
@@ -111,7 +126,7 @@ export default function Home() {
                     {/* Header */}
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-gradient-to-br from-[hsl(var(--paprika))]/20 to-orange-200/40 rounded-lg flex items-center justify-center">
-                        <span className="text-lg">🍳</span>
+                        <ChefHat className="w-4 h-4 text-[hsl(var(--paprika))]" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-lg">
@@ -198,7 +213,7 @@ export default function Home() {
             <Card className="hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-amber-50 via-white to-orange-50/50 border-2 border-[hsl(var(--paprika))]/30 shadow-lg">
               <CardContent className="p-8 text-center space-y-4">
                 <div className="w-16 h-16 mx-auto bg-gradient-to-br from-[hsl(var(--paprika))]/20 to-orange-200 rounded-full flex items-center justify-center shadow-lg border-2 border-[hsl(var(--paprika))]/30">
-                  <span className="text-3xl">📝</span>
+                  <FileText className="w-8 h-8 text-[hsl(var(--paprika))]" />
                 </div>
                 <h3 className="text-xl font-bold text-[hsl(var(--paprika))]">
                   Personalized Plans
@@ -213,7 +228,7 @@ export default function Home() {
             <Card className="hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-yellow-50 via-white to-amber-50/50 border-2 border-[hsl(var(--turmeric))]/40 shadow-lg">
               <CardContent className="p-8 text-center space-y-4">
                 <div className="w-16 h-16 mx-auto bg-gradient-to-br from-[hsl(var(--turmeric))]/30 to-amber-200 rounded-full flex items-center justify-center shadow-lg border-2 border-[hsl(var(--turmeric))]/40">
-                  <span className="text-3xl">📈</span>
+                  <TrendingUp className="w-8 h-8 text-amber-700" />
                 </div>
                 <h3 className="text-xl font-bold text-amber-700">
                   Adaptive Learning
@@ -228,7 +243,7 @@ export default function Home() {
             <Card className="hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-green-50 via-white to-emerald-50/50 border-2 border-[hsl(var(--sage))]/40 shadow-lg">
               <CardContent className="p-8 text-center space-y-4">
                 <div className="w-16 h-16 mx-auto bg-gradient-to-br from-[hsl(var(--sage))]/30 to-green-200 rounded-full flex items-center justify-center shadow-lg border-2 border-[hsl(var(--sage))]/40">
-                  <span className="text-3xl">🏆</span>
+                  <Trophy className="w-8 h-8 text-[hsl(var(--sage))]" />
                 </div>
                 <h3 className="text-xl font-bold text-[hsl(var(--sage))]">
                   Track Progress
@@ -267,19 +282,15 @@ export default function Home() {
                     className="h-20 px-16 text-2xl font-bold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-2xl hover:shadow-xl transition-all duration-500 transform hover:scale-105 animate-pulse hover:animate-none border-2 border-orange-700/30"
                   >
                     <span className="flex items-center gap-4">
-                      <span className="text-3xl animate-bounce">🚀</span>
+                      <Rocket className="w-6 h-6" />
                       <span>Start Your Cooking Journey</span>
-                      <span
-                        className="text-3xl animate-bounce"
-                        style={{ animationDelay: "0.5s" }}
-                      >
-                        ✨
-                      </span>
+                      <Sparkles className="w-6 h-6" />
                     </span>
                   </Button>
 
-                  <p className="text-sm text-muted-foreground font-medium">
-                    ⏱️ Takes less than 2 minutes to set up your personalized
+                  <p className="text-sm text-muted-foreground font-medium flex items-center justify-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    Takes less than 2 minutes to set up your personalized
                     experience
                   </p>
                 </div>
@@ -287,7 +298,7 @@ export default function Home() {
                 {/* Enhanced Trust indicators with more color */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8">
                   <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-gradient-to-br from-[hsl(var(--paprika))]/15 to-orange-100/50 border-2 border-[hsl(var(--paprika))]/30 shadow-lg">
-                    <span className="text-2xl">⚡</span>
+                    <Zap className="w-6 h-6 text-[hsl(var(--paprika))]" />
                     <span className="font-semibold text-[hsl(var(--paprika))]">
                       Quick Setup
                     </span>
@@ -296,7 +307,7 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-gradient-to-br from-[hsl(var(--turmeric))]/15 to-amber-100/50 border-2 border-[hsl(var(--turmeric))]/40 shadow-lg">
-                    <span className="text-2xl">🎯</span>
+                    <Target className="w-6 h-6 text-amber-700" />
                     <span className="font-semibold text-amber-700">
                       Personalized
                     </span>
@@ -305,7 +316,7 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-gradient-to-br from-[hsl(var(--sage))]/15 to-green-100/50 border-2 border-[hsl(var(--sage))]/40 shadow-lg">
-                    <span className="text-2xl">📱</span>
+                    <Smartphone className="w-6 h-6 text-[hsl(var(--sage))]" />
                     <span className="font-semibold text-[hsl(var(--sage))]">
                       Mobile Friendly
                     </span>
@@ -317,8 +328,9 @@ export default function Home() {
 
                 {/* Launch message */}
                 <div className="pt-6 border-t border-border/50">
-                  <p className="text-sm text-muted-foreground">
-                    🌟 <span className="font-semibold">New!</span> Start your
+                  <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                    <Sparkles className="w-4 h-4" />
+                    <span className="font-semibold">New!</span> Start your
                     personalized cooking journey today
                   </p>
                 </div>

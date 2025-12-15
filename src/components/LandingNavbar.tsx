@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { ChefHat } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function LandingNavbar() {
@@ -17,7 +18,7 @@ export default function LandingNavbar() {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center shadow-warm">
-              <span className="text-xl">🍳</span>
+              <ChefHat className="w-6 h-6 text-primary" />
             </div>
             <span className="text-2xl font-bold text-primary">ChefPath</span>
           </div>

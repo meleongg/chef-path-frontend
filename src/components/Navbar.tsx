@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { actions, useApp } from "@/contexts/AppContext";
+import { BarChart3, Calendar, Settings, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -16,10 +17,10 @@ export default function Navbar({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: "/weekly-plan", label: "Weekly Plan", icon: "📅" },
-    { href: "/analytics", label: "Analytics", icon: "📊" },
-    { href: "/settings/preferences", label: "Preferences", icon: "⚙️" },
-    { href: "/settings/account", label: "Account", icon: "👤" },
+    { href: "/weekly-plan", label: "Weekly Plan", Icon: Calendar },
+    { href: "/analytics", label: "Analytics", Icon: BarChart3 },
+    { href: "/settings/preferences", label: "Preferences", Icon: Settings },
+    { href: "/settings/account", label: "Account", Icon: User },
   ];
 
   const handleLogout = () => {
@@ -114,7 +115,7 @@ export default function Navbar({
                       : "text-gray-600 hover:bg-amber-100/60 hover:text-[hsl(var(--paprika))]"
                   }`}
                 >
-                  <span>{link.icon}</span>
+                  <link.Icon className="w-4 h-4" />
                   <span>{link.label}</span>
                 </Link>
               ))}

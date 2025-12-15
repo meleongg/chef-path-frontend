@@ -1,5 +1,7 @@
 "use client";
 
+import { ChefHat } from "lucide-react";
+
 export default function LandingFooter() {
   const currentYear = new Date().getFullYear();
 
@@ -10,7 +12,7 @@ export default function LandingFooter() {
           {/* Logo */}
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center">
-              <span className="text-lg">🍳</span>
+              <ChefHat className="w-5 h-5 text-primary" />
             </div>
             <span className="text-lg font-semibold text-primary">ChefPath</span>
           </div>

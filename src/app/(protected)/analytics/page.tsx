@@ -10,6 +10,14 @@ import {
 import { useUser, useWeeklyPlans } from "@/hooks";
 import { api } from "@/lib/api";
 import { UserProgress, UserRecipeProgress } from "@/types";
+import {
+  Calendar,
+  Flame,
+  Frown,
+  SmilePlus,
+  Target,
+  ThumbsUp,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface AnalyticsData {
@@ -177,8 +185,9 @@ export default function AnalyticsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                📅 Meal plans generated
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Meal plans generated
               </p>
             </CardContent>
           </Card>
@@ -211,8 +220,9 @@ export default function AnalyticsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                🔥 Consecutive weeks
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <Flame className="w-4 h-4" />
+                Consecutive weeks
               </p>
             </CardContent>
           </Card>
@@ -228,8 +238,9 @@ export default function AnalyticsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                🎯 Recipe challenge level
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                Recipe challenge level
               </p>
             </CardContent>
           </Card>
@@ -246,7 +257,10 @@ export default function AnalyticsPage() {
               {/* Too Easy */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="font-medium">😊 Too Easy</span>
+                  <span className="font-medium flex items-center gap-2">
+                    <SmilePlus className="w-4 h-4" />
+                    Too Easy
+                  </span>
                   <span className="text-muted-foreground">
                     {analytics.feedbackDistribution.too_easy} recipes
                   </span>
@@ -270,7 +284,10 @@ export default function AnalyticsPage() {
               {/* Just Right */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="font-medium">👍 Just Right</span>
+                  <span className="font-medium flex items-center gap-2">
+                    <ThumbsUp className="w-4 h-4" />
+                    Just Right
+                  </span>
                   <span className="text-muted-foreground">
                     {analytics.feedbackDistribution.just_right} recipes
                   </span>
@@ -294,7 +311,10 @@ export default function AnalyticsPage() {
               {/* Too Hard */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="font-medium">😅 Too Hard</span>
+                  <span className="font-medium flex items-center gap-2">
+                    <Frown className="w-4 h-4" />
+                    Too Hard
+                  </span>
                   <span className="text-muted-foreground">
                     {analytics.feedbackDistribution.too_hard} recipes
                   </span>

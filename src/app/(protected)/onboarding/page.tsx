@@ -102,7 +102,7 @@ export default function OnboardingPage() {
     try {
       const user = await updateUserProfile(submissionData);
       if (user) {
-        toast.success("Welcome to ChefPath! 🍳", {
+        toast.success("Welcome to ChefPath!", {
           description: "Your cooking journey starts now!",
         });
         router.push("/weekly-plan");
