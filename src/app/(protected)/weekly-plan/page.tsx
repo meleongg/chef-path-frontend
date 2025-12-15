@@ -36,6 +36,12 @@ export default function WeeklyPlanPage() {
       ? Math.max(...weeklyPlans.map((plan) => plan.week_number)) + 1
       : 1;
 
+  // Determine if we're still initializing
+  const isInitializing =
+    weeklyPlans === null ||
+    (weeklyPlans.length > 0 && currentWeek === 0) ||
+    (weeklyPlans.length > 0 && !currentPlan && !generatedPlan);
+
   useEffect(() => {
     if (!user && !userLoading) {
       router.push("/onboarding");
@@ -106,7 +112,7 @@ export default function WeeklyPlanPage() {
     }
   };
 
-  if (userLoading || plansLoading || !user) {
+  if (userLoading || plansLoading || !user || isInitializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-secondary/10">
         <div className="text-center">
@@ -134,6 +140,7 @@ export default function WeeklyPlanPage() {
           {generateError && (
             <div className="text-red-600 text-center mb-4">{generateError}</div>
           )}
+          {/* Show current plan if available */}
           {currentPlan ? (
             <div className="py-4">
               {(() => {
@@ -262,43 +269,46 @@ export default function WeeklyPlanPage() {
               </div>
             </div>
           ) : (
-            <div className="text-center py-8">
-              <div className="mb-6">
-                <p className="text-lg text-muted-foreground mb-2">
-                  {nextWeekEligibility?.message ||
-                    "You don't have a weekly meal plan yet."}
-                </p>
+            /* Only show "no plan" UI when we know for sure there are no plans */
+            weeklyPlans.length === 0 && (
+              <div className="text-center py-8">
+                <div className="mb-6">
+                  <p className="text-lg text-muted-foreground mb-2">
+                    {nextWeekEligibility?.message ||
+                      "You don't have a weekly meal plan yet."}
+                  </p>
+                </div>
+                <button
+                  className="px-8 py-4 bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 text-white font-bold rounded-lg shadow-lg hover:from-orange-600 hover:to-[hsl(var(--paprika))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--paprika))] disabled:opacity-60 disabled:cursor-not-allowed transition-all transform hover:scale-105"
+                  onClick={
+                    nextWeekEligibility?.current_week === null
+                      ? handleGenerateInitialWeek
+                      : handleGenerateNextWeek
+                  }
+                  disabled={
+                    isGenerating ||
+                    (nextWeekEligibility?.current_week !== null &&
+                      !nextWeekEligibility?.can_generate)
+                  }
+                  aria-label={
+                    nextWeekEligibility?.current_week === null
+                      ? `Generate Week ${nextWeek} Plan`
+                      : `Generate Week ${nextWeekEligibility?.next_week} Plan`
+                  }
+                >
+                  {isGenerating ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
+                      Generating...
+                    </span>
+                  ) : nextWeekEligibility?.current_week === null ? (
+                    `🚀 Generate Week ${nextWeek} Plan`
+                  ) : (
+                    `Generate Week ${nextWeekEligibility?.next_week} Plan`
+                  )}
+                </button>
               </div>
-              <button
-                className="px-8 py-4 bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 text-white font-bold rounded-lg shadow-lg hover:from-orange-600 hover:to-[hsl(var(--paprika))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--paprika))] disabled:opacity-60 disabled:cursor-not-allowed transition-all transform hover:scale-105"
-                onClick={
-                  nextWeekEligibility?.current_week === null
-                    ? handleGenerateInitialWeek
-                    : handleGenerateNextWeek
-                }
-                disabled={
-                  isGenerating ||
-                  (nextWeekEligibility?.current_week !== null &&
-                    !nextWeekEligibility?.can_generate)
-                }
-                aria-label={
-                  nextWeekEligibility?.current_week === null
-                    ? `Generate Week ${nextWeek} Plan`
-                    : `Generate Week ${nextWeekEligibility?.next_week} Plan`
-                }
-              >
-                {isGenerating ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
-                    Generating...
-                  </span>
-                ) : nextWeekEligibility?.current_week === null ? (
-                  `🚀 Generate Week ${nextWeek} Plan`
-                ) : (
-                  `Generate Week ${nextWeekEligibility?.next_week} Plan`
-                )}
-              </button>
-            </div>
+            )
           )}
         </CardContent>
       </Card>
