@@ -207,7 +207,7 @@ export default function SettingsPage() {
   return (
     <>
       <Toaster position="top-center" expand={true} richColors />
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/10 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20 flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
           <CardHeader className="space-y-2">
             <CardTitle className="text-2xl font-bold text-primary">

@@ -92,7 +92,8 @@ export default function AnalyticsPage() {
     const totalWeeks = weeklyPlans.length;
     const totalRecipes = userProgress.total_recipes;
     const completedRecipes = userProgress.completed_recipes;
-    const completionRate = userProgress.completion_rate;
+    // Backend returns completion_rate as decimal (0-1), convert to percentage
+    const completionRate = userProgress.completion_rate * 100;
 
     // Calculate feedback distribution
     const feedbackDistribution = allRecipeProgress.reduce(
@@ -124,17 +125,24 @@ export default function AnalyticsPage() {
     }
 
     // Calculate current streak (consecutive weeks with at least one recipe completed)
+    // Start from current week and go backwards
     let currentStreak = 0;
     const sortedPlans = [...weeklyPlans].sort(
       (a, b) => b.week_number - a.week_number
     );
+
+    // Find the most recent week with any completed recipes first
+    let streakStarted = false;
     for (const plan of sortedPlans) {
       const weekProgress = allRecipeProgress.filter(
         (p) => p.week_number === plan.week_number && p.feedback !== null
       );
+
       if (weekProgress.length > 0) {
+        streakStarted = true;
         currentStreak++;
-      } else {
+      } else if (streakStarted) {
+        // Once we've started counting and hit a week with no completed recipes, stop
         break;
       }
     }
@@ -162,7 +170,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/10 p-6 md:p-8 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20 p-6 md:p-8 py-8">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-2">
@@ -177,7 +185,7 @@ export default function AnalyticsPage() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Total Weeks */}
-          <Card className="border-2 border-[hsl(var(--paprika))]/40">
+          <Card className="border-2 border-[hsl(var(--paprika))]/40 bg-white">
             <CardHeader className="pb-4">
               <CardDescription className="text-sm">Total Weeks</CardDescription>
               <CardTitle className="text-3xl font-bold text-[hsl(var(--paprika))]">
@@ -193,7 +201,7 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* Completion Rate */}
-          <Card className="border-2 border-[hsl(var(--sage))]/40">
+          <Card className="border-2 border-[hsl(var(--sage))]/40 bg-white">
             <CardHeader className="pb-4">
               <CardDescription className="text-sm">
                 Completion Rate
@@ -210,7 +218,7 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* Current Streak */}
-          <Card className="border-2 border-orange-400/40">
+          <Card className="border-2 border-orange-400/40 bg-white">
             <CardHeader className="pb-4">
               <CardDescription className="text-sm">
                 Current Streak
@@ -228,7 +236,7 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* Average Difficulty */}
-          <Card className="border-2 border-blue-400/40">
+          <Card className="border-2 border-blue-400/40 bg-white">
             <CardHeader className="pb-4">
               <CardDescription className="text-sm">
                 Average Difficulty
@@ -247,7 +255,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Feedback Distribution */}
-        <Card className="border-2 border-[hsl(var(--paprika))]/40">
+        <Card className="border-2 border-[hsl(var(--paprika))]/40 bg-white">
           <CardHeader className="pb-4">
             <CardTitle className="text-xl">Feedback Distribution</CardTitle>
             <CardDescription>How you're finding the recipes</CardDescription>
@@ -340,7 +348,7 @@ export default function AnalyticsPage() {
 
         {/* User Info */}
         {user && (
-          <Card className="border-2 border-[hsl(var(--paprika))]/40">
+          <Card className="border-2 border-[hsl(var(--paprika))]/40 bg-white">
             <CardHeader className="pb-4">
               <CardTitle className="text-xl">Your Preferences</CardTitle>
               <CardDescription>Current cooking profile</CardDescription>

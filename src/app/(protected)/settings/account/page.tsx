@@ -183,7 +183,7 @@ export default function AccountSettingsPage() {
   return (
     <>
       <Toaster position="top-center" expand={true} richColors />
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/10 p-4 py-8 pb-16">
+      <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20 p-4 py-8 pb-16">
         <div className="max-w-2xl mx-auto space-y-6 mb-8">
           {/* Account Details Card */}
           <Card className="shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
