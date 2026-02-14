@@ -41,9 +41,12 @@ export default function FloatingChat() {
   // Listen for first plan generation to show pulse animation
   useEffect(() => {
     const handleFirstPlan = () => {
-      setShowPulse(true);
-      // Auto-hide pulse after 10 seconds
-      setTimeout(() => setShowPulse(false), 10000);
+      // Only pulse if the user isn't already looking at the plan
+      if (pathname !== "/weekly-plan") {
+        setShowPulse(true);
+        // Auto-hide pulse after 10 seconds
+        setTimeout(() => setShowPulse(false), 10000);
+      }
     };
 
     window.addEventListener("firstPlanGenerated", handleFirstPlan);
@@ -51,7 +54,7 @@ export default function FloatingChat() {
     return () => {
       window.removeEventListener("firstPlanGenerated", handleFirstPlan);
     };
-  }, []);
+  }, [pathname]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || !user) return;
@@ -88,9 +91,13 @@ export default function FloatingChat() {
       // Update the user message with classified intent
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === userMessage.id ? updatedUserMessage : msg
-        )
+          msg.id === userMessage.id ? updatedUserMessage : msg,
+        ),
       );
+
+      // Check if plan modification requires confirmation
+      // Backend returns boolean, not string
+      const requiresConfirmation = response.requires_confirmation === true;
 
       const aiMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
@@ -101,20 +108,26 @@ export default function FloatingChat() {
           response.intent === "plan_modification"
             ? "plan_modification"
             : "general",
+        // Set these properties BEFORE adding to messages array
+        requires_confirmation: requiresConfirmation,
+        originalRequest: requiresConfirmation ? userMessage.text : undefined,
       };
 
-      setMessages((prev) => [...prev, aiMessage]);
-
-      // Check if plan modification requires confirmation
-      if (response.requires_confirmation === "true") {
-        // Store the message ID and original request for confirmation buttons
+      // Set pending modification ID if confirmation is required
+      if (requiresConfirmation) {
         setPendingModificationId(aiMessage.id);
-        // Store original request in the message for later use
-        (aiMessage as any).originalRequest = userMessage.text;
       }
+
+      // Now add the message with all properties set
+      setMessages((prev) => [...prev, aiMessage]);
     } catch (err: any) {
-      setError(err?.message || "Failed to get response. Please try again.");
-      // Remove the user message if the API call failed
+      const errorMsg =
+        err?.message || "Failed to get response. Please try again.";
+      setError(errorMsg);
+
+      // Better UX: Keep the user message and restore it to input so they can retry
+      setInputMessage(userMessage.text);
+      // Remove the user message from display
       setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
@@ -123,7 +136,7 @@ export default function FloatingChat() {
 
   const handleConfirmModification = async (
     messageId: string,
-    originalRequest: string
+    originalRequest: string,
   ) => {
     if (!user) return;
 
@@ -134,7 +147,7 @@ export default function FloatingChat() {
       // Call the LangGraph endpoint to execute the plan modification
       const updatedPlan = await api.confirmPlanModification(
         user.id,
-        originalRequest
+        originalRequest,
       );
 
       // Success message
@@ -144,8 +157,8 @@ export default function FloatingChat() {
         text: `✅ Plan modification complete! Your week ${updatedPlan.week_number} plan has been updated.\n\nClick the button below to refresh and see your changes.`,
         timestamp: new Date(),
         type: "plan_modification",
+        showRefreshButton: true,
       };
-      (confirmMessage as any).showRefreshButton = true;
 
       setMessages((prev) => [...prev, confirmMessage]);
     } catch (err: any) {
@@ -223,8 +236,7 @@ export default function FloatingChat() {
           <CardHeader className="border-b bg-white">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-xl">
-                <span>🍳</span>
-                <span>Chefferson</span>
+                <span>Mise</span>
               </CardTitle>
               <Button
                 variant="ghost"
@@ -248,7 +260,7 @@ export default function FloatingChat() {
                 <div className="flex items-center justify-center h-full text-center">
                   <div className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-[hsl(var(--paprika))]/30">
                     <p className="text-lg font-medium mb-2">
-                      👋 Welcome to ChefPath!
+                      👋 I'm Mise, your ChefPath mentor!
                     </p>
                     <p className="text-sm">
                       Ask me about recipes, cooking techniques, or your meal
@@ -267,7 +279,7 @@ export default function FloatingChat() {
                 >
                   {/* Sender Label */}
                   <p className="text-xs font-medium text-muted-foreground mb-1 px-1">
-                    {message.sender === "user" ? "You" : "ChefPath"}
+                    {message.sender === "user" ? "You" : "Mise"}
                   </p>
 
                   <div
@@ -288,7 +300,7 @@ export default function FloatingChat() {
                       {message.text.split("\n").map((line, idx) => {
                         // Check if line is a numbered list item (e.g., "1. ", "2. ")
                         const numberedMatch = line.match(
-                          /^(\d+)\.\s+\*\*(.*?)\*\*(.*)$/
+                          /^(\d+)\.\s+\*\*(.*?)\*\*(.*)$/,
                         );
                         if (numberedMatch) {
                           return (
@@ -355,14 +367,14 @@ export default function FloatingChat() {
                     {/* Confirmation Buttons for Plan Modifications */}
                     {message.sender === "ai" &&
                       message.id === pendingModificationId &&
-                      (message as any).originalRequest && (
+                      message.originalRequest && (
                         <div className="mt-3 pt-3 border-t border-border flex gap-2">
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={handleCancelModification}
                             disabled={isLoading}
-                            className="flex-1 border-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
+                            className="flex-1 border-2 bg-[hsl(var(--paprika))]/10 hover:bg-[hsl(var(--paprika))]/20 text-[hsl(var(--paprika))] border-[hsl(var(--paprika))]/40 hover:border-[hsl(var(--paprika))]"
                           >
                             Cancel
                           </Button>
@@ -371,11 +383,11 @@ export default function FloatingChat() {
                             onClick={() =>
                               handleConfirmModification(
                                 message.id,
-                                (message as any).originalRequest
+                                message.originalRequest!,
                               )
                             }
                             disabled={isLoading}
-                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                            className="flex-1 bg-[hsl(var(--sage))] hover:bg-[hsl(var(--sage))]/90 text-white font-semibold border-2 border-[hsl(var(--sage))]/60"
                           >
                             {isLoading ? "Processing..." : "Confirm Changes"}
                           </Button>
@@ -383,24 +395,23 @@ export default function FloatingChat() {
                       )}
 
                     {/* Refresh Button for Successful Plan Modifications */}
-                    {message.sender === "ai" &&
-                      (message as any).showRefreshButton && (
-                        <div className="mt-3 pt-3 border-t border-gray-300">
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              if (pathname === "/weekly-plan") {
-                                window.location.reload();
-                              } else {
-                                window.location.href = "/weekly-plan";
-                              }
-                            }}
-                            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
-                          >
-                            🔄 Refresh Plan Page
-                          </Button>
-                        </div>
-                      )}
+                    {message.sender === "ai" && message.showRefreshButton && (
+                      <div className="mt-3 pt-3 border-t border-gray-300">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            if (pathname === "/weekly-plan") {
+                              window.location.reload();
+                            } else {
+                              window.location.href = "/weekly-plan";
+                            }
+                          }}
+                          className="w-full bg-[hsl(var(--sage))] hover:bg-[hsl(var(--sage))]/90 text-white font-semibold border-2 border-[hsl(var(--sage))]/60"
+                        >
+                          🔄 Refresh Plan Page
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -440,7 +451,7 @@ export default function FloatingChat() {
               <Button
                 onClick={handleSendMessage}
                 disabled={!inputMessage.trim() || isLoading}
-                className="w-full bg-gradient-to-r from-[hsl(var(--sage))] to-[hsl(var(--turmeric))] hover:opacity-90"
+                className="w-full bg-gradient-to-r from-[hsl(var(--turmeric))] to-orange-500 hover:opacity-90 text-white font-semibold"
               >
                 {isLoading ? "Sending..." : "Send Message"}
               </Button>

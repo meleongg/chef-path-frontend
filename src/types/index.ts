@@ -117,7 +117,8 @@ export interface GeneralChatResponse {
 export interface AdaptiveChatResponse {
   response: string;
   intent: "general_knowledge" | "plan_modification" | "analytics";
-  requires_confirmation?: string;
+  requires_confirmation?: boolean;
+  modification_request?: string;
 }
 
 export interface GenerateWeeklyPlanRequest {
@@ -210,4 +211,7 @@ export interface ChatMessage {
   text: string;
   timestamp: Date;
   type?: "general" | "plan_modification"; // For future intent routing
+  requires_confirmation?: boolean;
+  originalRequest?: string;
+  showRefreshButton?: boolean;
 }
