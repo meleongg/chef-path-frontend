@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUser } from "@/hooks";
-import { api } from "@/lib/api";
-import type { RegisterRequest } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -16,37 +14,25 @@ export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { user, isLoading, error: userError, loadUser } = useUser();
+  const { register, isLoading } = useAuth();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
-    try {
-      const payload: RegisterRequest = {
-        email,
-        password,
-        first_name: firstName,
-        last_name: lastName,
-      };
-      const res = await api.register(payload);
-      if (res && res.success && res.access_token && res.user) {
-        localStorage.setItem("chefpath_token", res.access_token);
-        await loadUser(res.user.id);
-        router.push("/onboarding");
-      } else {
-        setError(res?.message || "Registration failed.");
-      }
-    } catch (err: any) {
-      let friendlyError = "Registration failed. Please try again.";
-      if (err.status == 401) {
-        friendlyError = "Invalid email or password. Please try again.";
-      }
-      setError(friendlyError);
-    } finally {
-      setLoading(false);
+
+    const result = await register({
+      email,
+      password,
+      first_name: firstName,
+      last_name: lastName,
+    });
+
+    if (result.success) {
+      // New users always need onboarding
+      router.push("/onboarding");
+    } else {
+      setError(result.error || "Registration failed. Please try again.");
     }
   };
 
@@ -130,9 +116,9 @@ export default function RegisterPage() {
             <Button
               type="submit"
               className="w-full bg-[hsl(var(--sage))] text-primary font-semibold border border-[hsl(var(--paprika))] shadow transition-colors duration-200 hover:bg-[hsl(var(--sage))]/40 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--paprika))]"
-              disabled={loading}
+              disabled={isLoading}
             >
-              {loading ? "Registering..." : "Register"}
+              {isLoading ? "Registering..." : "Register"}
             </Button>
           </form>
         </CardContent>

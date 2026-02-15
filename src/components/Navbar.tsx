@@ -2,9 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { actions, useApp } from "@/contexts/AppContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { BarChart3, Calendar, Settings, User } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function Navbar({
@@ -13,7 +14,9 @@ export default function Navbar({
   showMinimal?: boolean;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { dispatch } = useApp();
+  const { logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
@@ -23,13 +26,15 @@ export default function Navbar({
     { href: "/settings/account", label: "Account", Icon: User },
   ];
 
-  const handleLogout = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("chefpath_token");
-      localStorage.removeItem("chefpath_user_id");
-      dispatch(actions.resetState());
-      window.location.href = "/";
-    }
+  const handleLogout = async () => {
+    // Logout via AuthContext (clears refresh token cookie)
+    await logout();
+    
+    // Reset app state
+    dispatch(actions.resetState());
+    
+    // Redirect to landing page
+    router.push("/");
   };
 
   return (

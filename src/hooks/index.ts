@@ -1,12 +1,12 @@
 "use client";
 
 import { actions, useApp } from "@/contexts/AppContext";
+import { useAuth as useAuthContext } from "@/contexts/AuthContext";
 import { api, parseHelpers } from "@/lib/api";
 import {
   ParsedRecipe,
   Recipe,
   SubmitFeedbackRequest,
-  User,
   UserProfileRequest,
   UserProgress,
   UserRecipeProgress,
@@ -14,70 +14,86 @@ import {
 } from "@/types";
 import { useState } from "react";
 
-// Hook for managing user data
+/**
+ * Hook for user authentication and profile management
+ * Combines auth state with profile operations
+ */
 export function useUser() {
-  const { state, dispatch } = useApp();
+  const auth = useAuthContext();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const updateUserProfile = async (
     userData: UserProfileRequest
-  ): Promise<User | null> => {
+  ): Promise<boolean> => {
     try {
-      dispatch(actions.setLoading(true));
-      dispatch(actions.setError(null));
+      setIsLoading(true);
+      setError(null);
 
-      const user = await api.updateUserProfile(userData);
-      dispatch(actions.setUser(user));
+      const updatedUser = await auth.updateUserProfile(userData);
+      if (updatedUser) {
+        return true;
+      }
+      return false;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to update user profile";
+      setError(errorMessage);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      // Store user ID in localStorage for persistence
-      localStorage.setItem("chefpath_user_id", user.id.toString());
+  return {
+    user: auth.user,
+    isAuthenticated: auth.isAuthenticated,
+    isInitialized: auth.isInitialized,
+    isLoading: isLoading || auth.isLoading,
+    error: error || auth.error,
+    login: auth.login,
+    register: auth.register,
+    logout: auth.logout,
+    updateUserProfile,
+  };
+}
 
-      return user;
+// Hook for updating user profile (business logic)
+export function useUserProfile() {
+  const { user, setUser } = useAuthContext();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const updateUserProfile = async (
+    userData: UserProfileRequest
+  ): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const updatedUser = await api.updateUserProfile(userData);
+      setUser(updatedUser);
+
+      return true;
     } catch (error) {
       const errorMessage =
         error instanceof Error
           ? error.message
           : "Failed to update user profile";
-      dispatch(actions.setError(errorMessage));
-      return null;
+      setError(errorMessage);
+      return false;
     } finally {
-      dispatch(actions.setLoading(false));
-    }
-  };
-
-  const loadUser = async (userId: string): Promise<User | null> => {
-    try {
-      dispatch(actions.setLoading(true));
-      dispatch(actions.setError(null));
-
-      const user = await api.getUser(userId);
-      dispatch(actions.setUser(user));
-
-      return user;
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to load user";
-      dispatch(actions.setError(errorMessage));
-      return null;
-    } finally {
-      dispatch(actions.setLoading(false));
-    }
-  };
-
-  // Try to load user from localStorage on app start
-  const initializeUser = async (): Promise<void> => {
-    const storedUserId = localStorage.getItem("chefpath_user_id");
-    if (storedUserId) {
-      await loadUser(storedUserId);
+      setIsLoading(false);
     }
   };
 
   return {
-    user: state.user,
-    isLoading: state.isLoading,
-    error: state.error,
+    user,
+    isLoading,
+    error,
     updateUserProfile,
-    loadUser,
-    initializeUser,
   };
 }
 
@@ -262,6 +278,7 @@ export function useWeeklyRecipeProgress() {
 // Hook for managing feedback and progress
 export function useFeedback() {
   const { state, dispatch } = useApp();
+  const { user } = useAuthContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const submitFeedback = async (
@@ -285,8 +302,8 @@ export function useFeedback() {
       }
 
       // If next week was unlocked, refresh weekly plans
-      if (response.next_week_unlocked && state.user) {
-        const plans = await api.getAllWeeklyPlans(state.user.id);
+      if (response.next_week_unlocked && user) {
+        const plans = await api.getAllWeeklyPlans(user.id);
         dispatch(actions.setWeeklyPlans(plans));
 
         // Update current week if needed

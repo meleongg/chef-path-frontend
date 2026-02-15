@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUser } from "@/hooks";
-import { api } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -13,41 +12,20 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { loadUser } = useUser();
+  const { login, isLoading } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
-    try {
-      const res = await api.login({ email, password });
-      if (res.access_token && res.user) {
-        localStorage.setItem("chefpath_token", res.access_token);
-        // Set user in context
-        const user = await loadUser(res.user.id);
-        const needsOnboarding =
-          !user?.frequency ||
-          !user?.cuisine ||
-          !user?.skill_level ||
-          !user?.user_goal;
-        if (needsOnboarding) {
-          router.push("/onboarding");
-        } else {
-          router.push("/weekly-plan");
-        }
-      } else {
-        setError("Invalid response from server.");
-      }
-    } catch (err: any) {
-      let friendlyError = "Login failed. Please try again.";
-      if (err.status == 401) {
-        friendlyError = "Invalid email or password. Please try again.";
-      }
-      setError(friendlyError);
-    } finally {
-      setLoading(false);
+
+    const result = await login({ email, password });
+
+    if (result.success) {
+      // Navigate to weekly-plan - AuthGuard will redirect to onboarding if needed
+      router.push("/weekly-plan");
+    } else {
+      setError(result.error || "Login failed. Please try again.");
     }
   };
 
@@ -97,9 +75,9 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="w-full bg-[hsl(var(--sage))] text-primary font-semibold border border-[hsl(var(--paprika))] shadow transition-colors duration-200 hover:bg-[hsl(var(--sage))]/40 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--paprika))]"
-              disabled={loading}
+              disabled={isLoading}
             >
-              {loading ? "Logging in..." : "Login"}
+              {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
         </CardContent>

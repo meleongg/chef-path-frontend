@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@/hooks";
+import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -13,14 +13,20 @@ export default function AuthGuard({
   children,
   requireOnboarding = false,
 }: AuthGuardProps) {
-  const { user, isLoading: userLoading } = useUser();
+  const { user, isAuthenticated, isInitialized, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!user && !userLoading) {
+    // Wait for auth to initialize before making decisions
+    if (!isInitialized) return;
+
+    // If not authenticated, redirect to login
+    if (!isAuthenticated) {
       router.push("/login");
       return;
     }
+
+    // If authenticated but needs onboarding, check if profile is complete
     if (requireOnboarding && user) {
       const needsOnboarding =
         !user.frequency ||
@@ -32,9 +38,10 @@ export default function AuthGuard({
         return;
       }
     }
-  }, [user, userLoading, requireOnboarding, router]);
+  }, [user, isAuthenticated, isInitialized, requireOnboarding, router]);
 
-  if (userLoading || !user) {
+  // Show loading state while initializing or during auth checks
+  if (!isInitialized || isLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-secondary/10">
         <div className="text-center">

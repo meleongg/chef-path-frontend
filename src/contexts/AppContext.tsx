@@ -1,17 +1,10 @@
 "use client";
 
-import {
-  Recipe,
-  User,
-  UserProgress,
-  UserRecipeProgress,
-  WeeklyPlan,
-} from "@/types";
+import { Recipe, UserProgress, UserRecipeProgress, WeeklyPlan } from "@/types";
 import React, { createContext, ReactNode, useContext, useReducer } from "react";
 
 // App State Interface
 interface AppState {
-  user: User | null;
   currentWeek: number;
   weeklyPlans: WeeklyPlan[];
   userProgress: UserProgress | null;
@@ -25,7 +18,6 @@ interface AppState {
 type AppAction =
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "SET_ERROR"; payload: string | null }
-  | { type: "SET_USER"; payload: User | null }
   | { type: "SET_CURRENT_WEEK"; payload: number }
   | { type: "SET_WEEKLY_PLANS"; payload: WeeklyPlan[] }
   | { type: "SET_USER_PROGRESS"; payload: UserProgress | null }
@@ -37,7 +29,6 @@ type AppAction =
 
 // Initial State
 const initialState: AppState = {
-  user: null,
   currentWeek: 1,
   weeklyPlans: [],
   userProgress: null,
@@ -56,9 +47,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case "SET_ERROR":
       return { ...state, error: action.payload, isLoading: false };
 
-    case "SET_USER":
-      return { ...state, user: action.payload };
-
     case "SET_CURRENT_WEEK":
       return { ...state, currentWeek: action.payload };
 
@@ -72,7 +60,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         weeklyPlans: state.weeklyPlans.map((plan) =>
-          plan.id === action.payload.id ? action.payload : plan
+          plan.id === action.payload.id ? action.payload : plan,
         ),
       };
     case "SET_WEEKLY_RECIPE_PROGRESS":
@@ -94,13 +82,13 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const existingIndex = state.weeklyRecipeProgress.findIndex(
         (p) =>
           p.recipe_id === action.payload.recipe_id &&
-          p.week_number === action.payload.week_number
+          p.week_number === action.payload.week_number,
       );
 
       const updatedProgress =
         existingIndex >= 0
           ? state.weeklyRecipeProgress.map((p, i) =>
-              i === existingIndex ? action.payload : p
+              i === existingIndex ? action.payload : p,
             )
           : [...state.weeklyRecipeProgress, action.payload];
 
@@ -161,11 +149,6 @@ export const actions = {
   setError: (error: string | null): AppAction => ({
     type: "SET_ERROR",
     payload: error,
-  }),
-
-  setUser: (user: User | null): AppAction => ({
-    type: "SET_USER",
-    payload: user,
   }),
 
   setCurrentWeek: (week: number): AppAction => ({

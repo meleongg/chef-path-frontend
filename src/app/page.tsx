@@ -23,12 +23,9 @@ import { useEffect } from "react";
 
 export default function Home() {
   const router = useRouter();
-  const { user, initializeUser, isLoading } = useUser();
+  const { user, isLoading } = useUser();
 
-  useEffect(() => {
-    initializeUser();
-  }, []);
-
+  // Redirect to weekly-plan if user is authenticated
   useEffect(() => {
     if (user) {
       router.push("/weekly-plan");

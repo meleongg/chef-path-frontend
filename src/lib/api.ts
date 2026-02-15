@@ -1,15 +1,12 @@
+import { getAccessToken, setAccessToken } from "@/contexts/AuthContext";
 import {
   AdaptiveChatResponse,
   ChangePasswordRequest,
   GeneralChatRequest,
   GeneralChatResponse,
-  LoginRequest,
-  LoginResponse,
   MessageResponse,
   NextWeekEligibility,
   Recipe,
-  RegisterRequest,
-  RegisterResponse,
   SubmitFeedbackRequest,
   SubmitFeedbackResponse,
   UpdateAccountRequest,
@@ -38,363 +35,484 @@ class ApiError extends Error {
     this.response = response;
   }
 }
+
+/**
+ * Get authorization headers with in-memory access token
+ */
 function getAuthHeaders() {
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("chefpath_token")
-      : null;
+  const token = getAccessToken();
   if (token) {
     return { Authorization: `Bearer ${token}` };
   }
   return undefined;
 }
 
-async function handleResponse<T>(response: Response): Promise<T> {
+/**
+ * Flag to prevent multiple simultaneous refresh attempts
+ */
+let isRefreshingToken = false;
+let refreshPromise: Promise<boolean> | null = null;
+
+/**
+ * Attempt to refresh the access token using the HTTP-only refresh cookie
+ */
+async function refreshAccessToken(): Promise<boolean> {
+  // If already refreshing, wait for that operation to complete
+  if (isRefreshingToken && refreshPromise) {
+    return refreshPromise;
+  }
+
+  isRefreshingToken = true;
+
+  refreshPromise = (async () => {
+    try {
+      const response = await fetch(`${AUTH_BASE_URL}/refresh`, {
+        method: "POST",
+        credentials: "include", // Send HTTP-only refresh cookie
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        // Refresh failed - session expired
+        setAccessToken(null);
+        // Redirect to login
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
+        return false;
+      }
+
+      const data = await response.json();
+      setAccessToken(data.access_token);
+      return true;
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      setAccessToken(null);
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
+      return false;
+    } finally {
+      isRefreshingToken = false;
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
+
+/**
+ * Handle API responses with automatic token refresh on 401
+ */
+async function handleResponse<T>(
+  response: Response,
+  retryFn?: () => Promise<Response>,
+): Promise<T> {
+  // If 401 and we have a retry function, attempt token refresh
+  if (response.status === 401 && retryFn && !isRefreshingToken) {
+    const refreshed = await refreshAccessToken();
+
+    if (refreshed) {
+      // Retry the original request with new token
+      const retryResponse = await retryFn();
+      return handleResponse<T>(retryResponse); // Process retry response (no retry on 2nd attempt)
+    }
+  }
+
   if (!response.ok) {
     const errorText = await response.text();
     throw new ApiError(
       `API Error: ${response.status} ${response.statusText} - ${errorText}`,
       response.status,
-      response
+      response,
     );
   }
 
   return response.json();
 }
 
+/**
+ * Helper to create a retry function for fetch requests
+ */
+function createRetryFn(
+  url: string,
+  options: RequestInit,
+): () => Promise<Response> {
+  return () => {
+    // Update auth headers with new token
+    const headers = {
+      ...options.headers,
+      ...getAuthHeaders(),
+    };
+    return fetch(url, { ...options, headers });
+  };
+}
+
 export const api = {
   async generalChat(
     userId: string,
-    chatInput: GeneralChatRequest
+    chatInput: GeneralChatRequest,
   ): Promise<GeneralChatResponse> {
-    const response = await fetch(`${PLAN_BASE_URL}/general/${userId}`, {
+    const url = `${PLAN_BASE_URL}/general/${userId}`;
+    const options: RequestInit = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
       body: JSON.stringify(chatInput),
-    });
-    return handleResponse<GeneralChatResponse>(response);
+    };
+    const response = await fetch(url, options);
+    return handleResponse<GeneralChatResponse>(
+      response,
+      createRetryFn(url, options),
+    );
   },
 
   async adaptiveChat(
     userId: string,
-    chatInput: GeneralChatRequest
+    chatInput: GeneralChatRequest,
   ): Promise<AdaptiveChatResponse> {
-    const response = await fetch(`${PLAN_BASE_URL}/adaptive_chat/${userId}`, {
+    const url = `${PLAN_BASE_URL}/adaptive_chat/${userId}`;
+    const options: RequestInit = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
       body: JSON.stringify(chatInput),
-    });
-    return handleResponse<AdaptiveChatResponse>(response);
+    };
+    const response = await fetch(url, options);
+    return handleResponse<AdaptiveChatResponse>(
+      response,
+      createRetryFn(url, options),
+    );
   },
 
   async generateWeeklyPlan(
     userId: string,
-    initial_intent: string
+    initial_intent: string,
   ): Promise<WeeklyPlanResponse> {
-    const response = await fetch(`${PLAN_BASE_URL}/generate/${userId}`, {
+    const url = `${PLAN_BASE_URL}/generate/${userId}`;
+    const options: RequestInit = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
       body: JSON.stringify({ initial_intent }),
-    });
-    return handleResponse<WeeklyPlanResponse>(response);
+    };
+    const response = await fetch(url, options);
+    return handleResponse<WeeklyPlanResponse>(
+      response,
+      createRetryFn(url, options),
+    );
   },
 
   async checkNextWeekEligibility(userId: string): Promise<NextWeekEligibility> {
-    const response = await fetch(
-      `${PLAN_BASE_URL}/can_generate_next_week/${userId}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-        },
-      }
+    const url = `${PLAN_BASE_URL}/can_generate_next_week/${userId}`;
+    const options: RequestInit = {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+    };
+    const response = await fetch(url, options);
+    return handleResponse<NextWeekEligibility>(
+      response,
+      createRetryFn(url, options),
     );
-    return handleResponse<NextWeekEligibility>(response);
   },
 
   async generateNextWeekPlan(userId: string): Promise<WeeklyPlanResponse> {
-    const response = await fetch(
-      `${PLAN_BASE_URL}/generate_next_week/${userId}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-        },
-      }
+    const url = `${PLAN_BASE_URL}/generate_next_week/${userId}`;
+    const options: RequestInit = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+    };
+    const response = await fetch(url, options);
+    return handleResponse<WeeklyPlanResponse>(
+      response,
+      createRetryFn(url, options),
     );
-    return handleResponse<WeeklyPlanResponse>(response);
   },
 
   async chatModifyPlan(
     userId: string,
-    user_message: string
+    user_message: string,
   ): Promise<WeeklyPlanResponse> {
-    const response = await fetch(`${PLAN_BASE_URL}/chat/${userId}`, {
+    const url = `${PLAN_BASE_URL}/chat/${userId}`;
+    const options: RequestInit = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
       body: JSON.stringify({ user_message }),
-    });
-    return handleResponse<WeeklyPlanResponse>(response);
+    };
+    const response = await fetch(url, options);
+    return handleResponse<WeeklyPlanResponse>(
+      response,
+      createRetryFn(url, options),
+    );
   },
 
   async confirmPlanModification(
     userId: string,
-    user_message: string
+    user_message: string,
   ): Promise<WeeklyPlanResponse> {
-    const response = await fetch(
-      `${PLAN_BASE_URL}/chat/confirm_modification/${userId}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-        },
-        body: JSON.stringify({ user_message }),
-      }
-    );
-    return handleResponse<WeeklyPlanResponse>(response);
-  },
-  async register(data: RegisterRequest): Promise<RegisterResponse> {
-    const response = await fetch(`${AUTH_BASE_URL}/register`, {
+    const url = `${PLAN_BASE_URL}/chat/confirm_modification/${userId}`;
+    const options: RequestInit = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...getAuthHeaders(),
       },
-      body: JSON.stringify(data),
-    });
-    return handleResponse<RegisterResponse>(response);
+      body: JSON.stringify({ user_message }),
+    };
+    const response = await fetch(url, options);
+    return handleResponse<WeeklyPlanResponse>(
+      response,
+      createRetryFn(url, options),
+    );
   },
+
   // User Management
   async updateUserProfile(userData: UserProfileRequest): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/user/profile`, {
+    const url = `${API_BASE_URL}/user/profile`;
+    const options: RequestInit = {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        ...(getAuthHeaders() || {}),
+        ...getAuthHeaders(),
       },
       body: JSON.stringify(userData),
-    });
-
-    return handleResponse<User>(response);
+    };
+    const response = await fetch(url, options);
+    return handleResponse<User>(response, createRetryFn(url, options));
   },
 
   async getUser(userId: string): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/user/${userId}`, {
-      headers: Object.assign(
-        { "Content-Type": "application/json" },
-        getAuthHeaders() || {}
-      ),
-    });
-    return handleResponse<User>(response);
+    const url = `${API_BASE_URL}/user/${userId}`;
+    const options: RequestInit = {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+    };
+    const response = await fetch(url, options);
+    return handleResponse<User>(response, createRetryFn(url, options));
   },
 
   async updateUser(userId: string, updates: UserProfileRequest): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/user/${userId}`, {
+    const url = `${API_BASE_URL}/user/${userId}`;
+    const options: RequestInit = {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
       body: JSON.stringify(updates),
-    });
-
-    return handleResponse<User>(response);
+    };
+    const response = await fetch(url, options);
+    return handleResponse<User>(response, createRetryFn(url, options));
   },
 
   // Account Management
   async updateAccount(
     userId: string,
-    accountData: UpdateAccountRequest
+    accountData: UpdateAccountRequest,
   ): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}/account`, {
+    const url = `${API_BASE_URL}/users/${userId}/account`;
+    const options: RequestInit = {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
       body: JSON.stringify(accountData),
-    });
-
-    return handleResponse<User>(response);
+    };
+    const response = await fetch(url, options);
+    return handleResponse<User>(response, createRetryFn(url, options));
   },
 
   async changePassword(
     userId: string,
-    passwordData: ChangePasswordRequest
+    passwordData: ChangePasswordRequest,
   ): Promise<MessageResponse> {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}/password`, {
+    const url = `${API_BASE_URL}/users/${userId}/password`;
+    const options: RequestInit = {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
       body: JSON.stringify(passwordData),
-    });
-
-    return handleResponse<MessageResponse>(response);
+    };
+    const response = await fetch(url, options);
+    return handleResponse<MessageResponse>(
+      response,
+      createRetryFn(url, options),
+    );
   },
 
   async deleteAccount(userId: string): Promise<MessageResponse> {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    const url = `${API_BASE_URL}/users/${userId}`;
+    const options: RequestInit = {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
-    });
-
-    return handleResponse<MessageResponse>(response);
+    };
+    const response = await fetch(url, options);
+    return handleResponse<MessageResponse>(
+      response,
+      createRetryFn(url, options),
+    );
   },
 
   async getAllUsers(): Promise<User[]> {
-    const response = await fetch(`${API_BASE_URL}/users`, {
+    const url = `${API_BASE_URL}/users`;
+    const options: RequestInit = {
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
-    });
-    return handleResponse<User[]>(response);
+    };
+    const response = await fetch(url, options);
+    return handleResponse<User[]>(response, createRetryFn(url, options));
   },
 
   // Weekly Plans
   async getWeeklyPlan(userId: string, weekNumber: number): Promise<WeeklyPlan> {
-    const response = await fetch(
-      `${API_BASE_URL}/weekly-plan?user_id=${userId}&week_number=${weekNumber}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-        },
-      }
-    );
-    return handleResponse<WeeklyPlan>(response);
-  },
-
-  async getAllWeeklyPlans(userId: string): Promise<WeeklyPlan[]> {
-    const response = await fetch(`${API_BASE_URL}/weekly-plan/${userId}/all`, {
+    const url = `${API_BASE_URL}/weekly-plan?user_id=${userId}&week_number=${weekNumber}`;
+    const options: RequestInit = {
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
-    });
-    return handleResponse<WeeklyPlan[]>(response);
+    };
+    const response = await fetch(url, options);
+    return handleResponse<WeeklyPlan>(response, createRetryFn(url, options));
+  },
+
+  async getAllWeeklyPlans(userId: string): Promise<WeeklyPlan[]> {
+    const url = `${API_BASE_URL}/weekly-plan/${userId}/all`;
+    const options: RequestInit = {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+    };
+    const response = await fetch(url, options);
+    return handleResponse<WeeklyPlan[]>(response, createRetryFn(url, options));
   },
 
   // Recipes
   async getRecipe(recipeId: string): Promise<Recipe> {
-    const response = await fetch(`${API_BASE_URL}/recipe/${recipeId}`, {
+    const url = `${API_BASE_URL}/recipe/${recipeId}`;
+    const options: RequestInit = {
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
-    });
-    return handleResponse<Recipe>(response);
+    };
+    const response = await fetch(url, options);
+    return handleResponse<Recipe>(response, createRetryFn(url, options));
   },
 
   async getRandomRecipes(count: number = 5): Promise<Recipe[]> {
-    const response = await fetch(
-      `${API_BASE_URL}/recipes/random?count=${count}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-        },
-      }
-    );
-    return handleResponse<Recipe[]>(response);
+    const url = `${API_BASE_URL}/recipes/random?count=${count}`;
+    const options: RequestInit = {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+    };
+    const response = await fetch(url, options);
+    return handleResponse<Recipe[]>(response, createRetryFn(url, options));
   },
 
   // Feedback & Progress
   async getRecipeProgress(
     userId: string,
     recipeId: string,
-    weekNumber: number
+    weekNumber: number,
   ): Promise<UserRecipeProgress | null> {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/progress/${userId}/recipe/${recipeId}/week/${weekNumber}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            ...getAuthHeaders(),
-          },
-        }
-      );
+      const url = `${API_BASE_URL}/progress/${userId}/recipe/${recipeId}/week/${weekNumber}`;
+      const options: RequestInit = {
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+      };
+      const response = await fetch(url, options);
       if (response.status === 404) {
         return null; // No existing feedback
       }
-      return handleResponse<UserRecipeProgress>(response);
+      return handleResponse<UserRecipeProgress>(
+        response,
+        createRetryFn(url, options),
+      );
     } catch (err) {
       return null; // Return null if not found
     }
   },
 
   async submitFeedback(
-    feedbackData: SubmitFeedbackRequest
+    feedbackData: SubmitFeedbackRequest,
   ): Promise<SubmitFeedbackResponse> {
-    const response = await fetch(
-      `${API_BASE_URL}/feedback/${feedbackData.user_id}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-        },
-        body: JSON.stringify(feedbackData),
-      }
-    );
-
-    return handleResponse<SubmitFeedbackResponse>(response);
-  },
-
-  async getUserProgress(userId: string): Promise<UserProgress> {
-    const response = await fetch(`${API_BASE_URL}/progress/${userId}`, {
+    const url = `${API_BASE_URL}/feedback/${feedbackData.user_id}`;
+    const options: RequestInit = {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
-    });
-    return handleResponse<UserProgress>(response);
+      body: JSON.stringify(feedbackData),
+    };
+    const response = await fetch(url, options);
+    return handleResponse<SubmitFeedbackResponse>(
+      response,
+      createRetryFn(url, options),
+    );
+  },
+
+  async getUserProgress(userId: string): Promise<UserProgress> {
+    const url = `${API_BASE_URL}/progress/${userId}`;
+    const options: RequestInit = {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+    };
+    const response = await fetch(url, options);
+    return handleResponse<UserProgress>(response, createRetryFn(url, options));
   },
 
   async getWeeklyRecipeProgress(
     userId: string,
-    weekNumber: number
+    weekNumber: number,
   ): Promise<UserRecipeProgress[]> {
-    const response = await fetch(
-      `${API_BASE_URL}/progress/${userId}/week/${weekNumber}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-        },
-      }
-    );
-    return handleResponse<UserRecipeProgress[]>(response);
-  },
-
-  async login(data: LoginRequest): Promise<LoginResponse> {
-    const response = await fetch(`${AUTH_BASE_URL}/login`, {
-      method: "POST",
+    const url = `${API_BASE_URL}/progress/${userId}/week/${weekNumber}`;
+    const options: RequestInit = {
       headers: {
         "Content-Type": "application/json",
+        ...getAuthHeaders(),
       },
-      body: JSON.stringify(data),
-    });
-    return handleResponse<LoginResponse>(response);
+    };
+    const response = await fetch(url, options);
+    return handleResponse<UserRecipeProgress[]>(
+      response,
+      createRetryFn(url, options),
+    );
   },
 };
 
