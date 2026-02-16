@@ -4,50 +4,36 @@ import RecipeFeedbackForm from "@/components/RecipeFeedbackForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { actions, useApp } from "@/contexts/AppContext";
-import { useRecipes } from "@/hooks";
-import { api } from "@/lib/api";
-import type { ParsedRecipe } from "@/types";
+import { useApp } from "@/contexts/AppContext";
+import { useUser } from "@/hooks";
+import { useRecipeQuery } from "@/hooks/queries";
+import { parseHelpers } from "@/lib/api";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export default function RecipeDetailPage() {
   const { id } = useParams();
-  const { getRecipe, isLoading } = useRecipes();
-  const [recipe, setRecipe] = useState<ParsedRecipe | null>(null);
+  const recipeId = typeof id === "string" ? id : id?.[0];
+  const { data: recipe, isLoading } = useRecipeQuery(recipeId);
+  const { user } = useUser();
+  const { state } = useApp();
+  const currentWeek = state.currentWeek;
   const [completed, setCompleted] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const feedbackSubmittedRef = useRef(false);
-  const { state, dispatch } = useApp();
-  const user = state.user;
-  const currentWeek = state.currentWeek;
-  const weeklyRecipeProgress = state.weeklyRecipeProgress;
 
-  useEffect(() => {
-    if (id) {
-      getRecipe(String(id)).then((data) => setRecipe(data));
-    }
-  }, [id]);
+  // TODO: Fetch recipe progress if needed
+  const weeklyRecipeProgress: any[] = [];
 
-  useEffect(() => {
-    if (user && currentWeek) {
-      api
-        .getWeeklyRecipeProgress(user.id, currentWeek)
-        .then((progress) => {
-          dispatch(actions.setWeeklyRecipeProgress(progress));
-        })
-        .catch((err) => {
-          // Optionally handle error
-        });
-    }
-  }, [user, currentWeek]);
+  // Recipe is automatically fetched by useRecipeQuery hook
+  // No need for manual useEffect to fetch recipe
 
   // Check if this recipe is completed in weekly progress
   useEffect(() => {
     if (recipe && weeklyRecipeProgress) {
       const progress = weeklyRecipeProgress.find(
-        (p) => p.recipe_id === recipe.id && p.status === "completed"
+        (p) => p.recipe_id === recipe.id && p.status === "completed",
       );
       setCompleted(!!progress);
     }
@@ -72,6 +58,10 @@ export default function RecipeDetailPage() {
       </div>
     );
   }
+
+  // Parse recipe data
+  const ingredients = parseHelpers.parseRecipeIngredients(recipe.ingredients);
+  const instructions = parseHelpers.parseRecipeInstructions(recipe.instructions);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[hsl(var(--paprika))]/10 via-[hsl(var(--sage))]/10 to-[hsl(var(--turmeric))]/10 relative">
@@ -106,16 +96,18 @@ export default function RecipeDetailPage() {
           <div className="mb-4">
             <div className="font-semibold mb-1">Ingredients:</div>
             <ul className="list-disc list-inside text-sm">
-              {Array.isArray(recipe.ingredients)
-                ? recipe.ingredients.map((ing, i) => <li key={i}>{ing}</li>)
-                : null}
+              {ingredients.map((ing, i) => (
+                <li key={i}>{ing}</li>
+              ))}
             </ul>
           </div>
           <div className="mb-4">
             <div className="font-semibold mb-1">Instructions:</div>
-            <div className="whitespace-pre-line text-sm">
-              {recipe.instructions}
-            </div>
+            <ol className="list-decimal list-inside text-sm space-y-2">
+              {instructions.map((step, i) => (
+                <li key={i}>{step}</li>
+              ))}
+            </ol>
           </div>
           {/* Mark as Complete Button & Feedback Modal */}
           <div className="flex justify-center mt-8">

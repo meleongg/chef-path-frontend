@@ -1,101 +1,42 @@
 "use client";
 
-import { Recipe, UserProgress, UserRecipeProgress, WeeklyPlan } from "@/types";
 import React, { createContext, ReactNode, useContext, useReducer } from "react";
 
-// App State Interface
+/**
+ * AppContext manages UI state only
+ * Server data (recipes, plans, progress) is handled by TanStack Query
+ */
+
+// App State Interface - UI state only
 interface AppState {
   currentWeek: number;
-  weeklyPlans: WeeklyPlan[];
-  userProgress: UserProgress | null;
-  weeklyRecipeProgress: UserRecipeProgress[];
-  recipes: Record<string, Recipe>; // Cache individual recipes by ID
-  isLoading: boolean;
-  error: string | null;
+  isChatOpen: boolean; // For FloatingChat component
 }
 
 // Action Types
 type AppAction =
-  | { type: "SET_LOADING"; payload: boolean }
-  | { type: "SET_ERROR"; payload: string | null }
   | { type: "SET_CURRENT_WEEK"; payload: number }
-  | { type: "SET_WEEKLY_PLANS"; payload: WeeklyPlan[] }
-  | { type: "SET_USER_PROGRESS"; payload: UserProgress | null }
-  | { type: "SET_WEEKLY_RECIPE_PROGRESS"; payload: UserRecipeProgress[] }
-  | { type: "UPDATE_WEEKLY_PLAN"; payload: WeeklyPlan }
-  | { type: "SET_RECIPE"; payload: Recipe }
-  | { type: "UPDATE_RECIPE_PROGRESS"; payload: UserRecipeProgress }
+  | { type: "TOGGLE_CHAT" }
+  | { type: "SET_CHAT_OPEN"; payload: boolean }
   | { type: "RESET_STATE" };
 
 // Initial State
 const initialState: AppState = {
   currentWeek: 1,
-  weeklyPlans: [],
-  userProgress: null,
-  weeklyRecipeProgress: [],
-  recipes: {},
-  isLoading: false,
-  error: null,
+  isChatOpen: false,
 };
 
 // Reducer
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
-    case "SET_LOADING":
-      return { ...state, isLoading: action.payload };
-
-    case "SET_ERROR":
-      return { ...state, error: action.payload, isLoading: false };
-
     case "SET_CURRENT_WEEK":
       return { ...state, currentWeek: action.payload };
 
-    case "SET_WEEKLY_PLANS":
-      return { ...state, weeklyPlans: action.payload };
+    case "TOGGLE_CHAT":
+      return { ...state, isChatOpen: !state.isChatOpen };
 
-    case "SET_USER_PROGRESS":
-      return { ...state, userProgress: action.payload };
-
-    case "UPDATE_WEEKLY_PLAN":
-      return {
-        ...state,
-        weeklyPlans: state.weeklyPlans.map((plan) =>
-          plan.id === action.payload.id ? action.payload : plan,
-        ),
-      };
-    case "SET_WEEKLY_RECIPE_PROGRESS":
-      return {
-        ...state,
-        weeklyRecipeProgress: action.payload,
-      };
-
-    case "SET_RECIPE":
-      return {
-        ...state,
-        recipes: {
-          ...state.recipes,
-          [action.payload.id]: action.payload,
-        },
-      };
-
-    case "UPDATE_RECIPE_PROGRESS":
-      const existingIndex = state.weeklyRecipeProgress.findIndex(
-        (p) =>
-          p.recipe_id === action.payload.recipe_id &&
-          p.week_number === action.payload.week_number,
-      );
-
-      const updatedProgress =
-        existingIndex >= 0
-          ? state.weeklyRecipeProgress.map((p, i) =>
-              i === existingIndex ? action.payload : p,
-            )
-          : [...state.weeklyRecipeProgress, action.payload];
-
-      return {
-        ...state,
-        weeklyRecipeProgress: updatedProgress,
-      };
+    case "SET_CHAT_OPEN":
+      return { ...state, isChatOpen: action.payload };
 
     case "RESET_STATE":
       return initialState;
@@ -137,48 +78,18 @@ export function useApp() {
 
 // Action Creators (for better TypeScript support)
 export const actions = {
-  setWeeklyRecipeProgress: (progress: UserRecipeProgress[]): AppAction => ({
-    type: "SET_WEEKLY_RECIPE_PROGRESS",
-    payload: progress,
-  }),
-  setLoading: (isLoading: boolean): AppAction => ({
-    type: "SET_LOADING",
-    payload: isLoading,
-  }),
-
-  setError: (error: string | null): AppAction => ({
-    type: "SET_ERROR",
-    payload: error,
-  }),
-
   setCurrentWeek: (week: number): AppAction => ({
     type: "SET_CURRENT_WEEK",
     payload: week,
   }),
 
-  setWeeklyPlans: (plans: WeeklyPlan[]): AppAction => ({
-    type: "SET_WEEKLY_PLANS",
-    payload: plans,
+  toggleChat: (): AppAction => ({
+    type: "TOGGLE_CHAT",
   }),
 
-  setUserProgress: (progress: UserProgress | null): AppAction => ({
-    type: "SET_USER_PROGRESS",
-    payload: progress,
-  }),
-
-  updateWeeklyPlan: (plan: WeeklyPlan): AppAction => ({
-    type: "UPDATE_WEEKLY_PLAN",
-    payload: plan,
-  }),
-
-  setRecipe: (recipe: Recipe): AppAction => ({
-    type: "SET_RECIPE",
-    payload: recipe,
-  }),
-
-  updateRecipeProgress: (progress: UserRecipeProgress): AppAction => ({
-    type: "UPDATE_RECIPE_PROGRESS",
-    payload: progress,
+  setChatOpen: (isOpen: boolean): AppAction => ({
+    type: "SET_CHAT_OPEN",
+    payload: isOpen,
   }),
 
   resetState: (): AppAction => ({

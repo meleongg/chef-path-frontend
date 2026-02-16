@@ -4,10 +4,11 @@ import RecipeFeedbackForm from "@/components/RecipeFeedbackForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useRecipes, useUser, useWeeklyRecipeProgress } from "@/hooks";
+import { useRecipeParser, useUser } from "@/hooks";
+import { useRecipeQuery, useWeeklyRecipeProgressQuery } from "@/hooks/queries";
 import { parseHelpers } from "@/lib/api";
 import { useRouter, useSearchParams } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { use, useState } from "react";
 
 export default function RecipePage({
   params,
@@ -19,24 +20,23 @@ export default function RecipePage({
   const weekNumber = parseInt(searchParams.get("week") || "1");
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const { user } = useUser();
-  const { getRecipe, getRecipeFromCache } = useRecipes();
-  const { getRecipeProgress, isRecipeCompleted } = useWeeklyRecipeProgress();
+  const { getParsedRecipe } = useRecipeParser();
   const router = useRouter();
 
-  // Get recipe from cache or load it
-  const recipe = getRecipeFromCache(resolvedParams.id);
-  const existingFeedback = getRecipeProgress(resolvedParams.id, weekNumber);
-  const hasFeedback = isRecipeCompleted(resolvedParams.id, weekNumber);
+  // Fetch recipe using TanStack Query (automatic caching)
+  const { data: recipe, isLoading } = useRecipeQuery(resolvedParams.id);
+  const { data: recipeProgress } = useWeeklyRecipeProgressQuery(
+    user?.id,
+    weekNumber,
+  );
 
-  useEffect(() => {
-    // Only fetch if not in cache
-    if (!recipe && resolvedParams.id) {
-      getRecipe(resolvedParams.id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resolvedParams.id, recipe]);
+  // Check if this specific recipe has feedback/progress
+  const existingFeedback = recipeProgress?.find(
+    (p) => p.recipe_id === resolvedParams.id,
+  );
+  const hasFeedback = existingFeedback?.status === "completed";
 
-  if (!recipe) {
+  if (isLoading || !recipe) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-secondary/10">
         <div className="text-center">
@@ -49,7 +49,7 @@ export default function RecipePage({
 
   const ingredients = parseHelpers.parseRecipeIngredients(recipe.ingredients);
   const instructions = parseHelpers.parseRecipeInstructions(
-    recipe.instructions
+    recipe.instructions,
   );
   const dietaryTags = recipe.dietary_tags
     ? parseHelpers.parseRecipeTags(recipe.dietary_tags)
@@ -91,8 +91,8 @@ export default function RecipePage({
                   {showFeedbackForm
                     ? "Hide Feedback Form"
                     : hasFeedback
-                    ? "Update Feedback"
-                    : "Give Feedback on This Recipe"}
+                      ? "Update Feedback"
+                      : "Give Feedback on This Recipe"}
                 </Button>
               )}
             </div>

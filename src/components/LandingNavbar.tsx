@@ -12,7 +12,7 @@ export default function LandingNavbar() {
   };
 
   return (
-    <nav className="relative border-b border-border/20 bg-background/80 backdrop-blur-md">
+    <nav className="relative border-b border-[hsl(var(--paprika))]/20 bg-gradient-to-r from-orange-100 via-amber-100 to-yellow-100/80 backdrop-blur-md shadow-sm">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -41,7 +41,7 @@ export default function LandingNavbar() {
             </Button>
             <Button
               onClick={handleGetStarted}
-              className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground font-semibold px-6 py-2 shadow-warm hover:shadow-cozy transition-all duration-300"
+              className="bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white font-bold px-6 py-2 shadow-xl hover:shadow-2xl ring-2 ring-[hsl(var(--paprika))]/30 hover:ring-[hsl(var(--paprika))]/50 transition-all duration-300 transform hover:scale-105"
             >
               Get Started Free
             </Button>

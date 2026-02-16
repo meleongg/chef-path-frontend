@@ -19,18 +19,13 @@ import {
   Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export default function Home() {
   const router = useRouter();
-  const { user, isLoading } = useUser();
+  const { isLoading } = useUser();
 
-  // Redirect to weekly-plan if user is authenticated
-  useEffect(() => {
-    if (user) {
-      router.push("/weekly-plan");
-    }
-  }, [user, router]);
+  // Note: Middleware handles redirecting logged-in users to /weekly-plan
+  // This loading check is kept as a fallback for edge cases
 
   const handleGetStarted = () => {
     router.push("/onboarding");

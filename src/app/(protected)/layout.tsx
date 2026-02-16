@@ -3,8 +3,9 @@
 import AuthGuard from "@/components/AuthGuard";
 import ClientNavbar from "@/components/ClientNavbar";
 import FloatingChat from "@/components/FloatingChat";
-import { useUser, useWeeklyPlans, useWeeklyRecipeProgress } from "@/hooks";
-import { useEffect } from "react";
+import { useApp } from "@/contexts/AppContext";
+import { useUser } from "@/hooks";
+import { useWeeklyPlansQuery, useWeeklyRecipeProgressQuery } from "@/hooks/queries";
 
 export default function ProtectedLayout({
   children,
@@ -12,25 +13,17 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const { user } = useUser();
-  const { loadWeeklyPlans, currentWeek } = useWeeklyPlans();
-  const { loadWeeklyRecipeProgress } = useWeeklyRecipeProgress();
+  const { state } = useApp();
+  const currentWeek = state.currentWeek;
 
-  // Load data once when user is available
-  useEffect(() => {
-    if (user) {
-      const initializeData = async () => {
-        // Load weekly plans
-        await loadWeeklyPlans(user.id);
+  // TanStack Query automatically fetches and caches data
+  // These hooks will deduplicate requests if called from multiple components
+  const weeklyPlansQuery = useWeeklyPlansQuery(user?.id);
+  const recipeProgressQuery = useWeeklyRecipeProgressQuery(user?.id, currentWeek);
 
-        // Load recipe progress for current week
-        if (currentWeek > 0) {
-          await loadWeeklyRecipeProgress(user.id, currentWeek);
-        }
-      };
-
-      initializeData();
-    }
-  }, [user?.id, currentWeek]);
+  // Note: No manual loading needed!
+  // Queries automatically fetch when enabled (user?.id exists)
+  // Data is cached and shared with all child components
 
   return (
     <AuthGuard requireOnboarding>

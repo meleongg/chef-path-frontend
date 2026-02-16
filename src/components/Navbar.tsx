@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { actions, useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { BarChart3, Calendar, Settings, User } from "lucide-react";
+import { BarChart3, Calendar, ChefHat, Settings, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -29,22 +29,27 @@ export default function Navbar({
   const handleLogout = async () => {
     // Logout via AuthContext (clears refresh token cookie)
     await logout();
-    
+
     // Reset app state
     dispatch(actions.resetState());
-    
+
     // Redirect to landing page
     router.push("/");
   };
 
   return (
-    <nav className="w-full bg-gradient-to-r from-amber-50/80 via-white/80 to-orange-50/80 backdrop-blur-md border-b-2 border-[hsl(var(--paprika))]/20 shadow-md sticky top-0 z-50">
+    <nav className="w-full bg-gradient-to-r from-orange-100 via-amber-100 to-yellow-100/80 backdrop-blur-md border-b border-[hsl(var(--paprika))]/20 shadow-sm sticky top-0 z-50">
       <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
         <Link
           href="/weekly-plan"
-          className="text-xl font-bold text-[hsl(var(--paprika))] tracking-tight hover:text-orange-600 transition-colors"
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
         >
-          ChefPath
+          <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center shadow-warm">
+            <ChefHat className="w-6 h-6 text-primary" />
+          </div>
+          <span className="text-xl font-bold text-[hsl(var(--paprika))] tracking-tight">
+            ChefPath
+          </span>
         </Link>
 
         {/* Desktop Menu */}
@@ -63,14 +68,16 @@ export default function Navbar({
                 {link.label}
               </Link>
             ))}
-          <Button
-            variant="outline"
-            onClick={handleLogout}
-            size="sm"
-            className="border-2 border-[hsl(var(--paprika))]/40 text-[hsl(var(--paprika))] hover:bg-[hsl(var(--paprika))] hover:text-white hover:border-[hsl(var(--paprika))] transition-all duration-200 font-semibold"
-          >
-            Logout
-          </Button>
+          {!showMinimal && (
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              size="sm"
+              className="border-2 border-[hsl(var(--paprika))]/40 text-[hsl(var(--paprika))] hover:bg-[hsl(var(--paprika))] hover:text-white hover:border-[hsl(var(--paprika))] transition-all duration-200 font-semibold"
+            >
+              Logout
+            </Button>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -124,13 +131,15 @@ export default function Navbar({
                   <span>{link.label}</span>
                 </Link>
               ))}
-            <Button
-              variant="outline"
-              onClick={handleLogout}
-              className="w-full border-2 border-[hsl(var(--paprika))]/40 text-[hsl(var(--paprika))] hover:bg-[hsl(var(--paprika))] hover:text-white hover:border-[hsl(var(--paprika))] transition-all duration-200 font-semibold mt-2"
-            >
-              Logout
-            </Button>
+            {!showMinimal && (
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="w-full border-2 border-[hsl(var(--paprika))]/40 text-[hsl(var(--paprika))] hover:bg-[hsl(var(--paprika))] hover:text-white hover:border-[hsl(var(--paprika))] transition-all duration-200 font-semibold mt-2"
+              >
+                Logout
+              </Button>
+            )}
           </div>
         </div>
       )}

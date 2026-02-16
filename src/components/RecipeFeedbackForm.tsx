@@ -15,7 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useFeedback, useUser } from "@/hooks";
+import { useUser } from "@/hooks";
+import { useSubmitFeedbackMutation } from "@/hooks/queries";
 import { useEffect, useState } from "react";
 
 
@@ -32,14 +33,17 @@ export default function RecipeFeedbackForm({
   existingFeedback,
   onFeedbackSubmitted,
 }: RecipeFeedbackFormProps) {
-  const { submitFeedback, isSubmitting, error: feedbackError } = useFeedback();
   const { user } = useUser();
+  const submitFeedbackMutation = useSubmitFeedbackMutation();
   const [feedback, setFeedback] = useState(existingFeedback?.feedback || "");
   const [feedbackSelectError, setFeedbackSelectError] = useState<string | null>(
     null
   );
   const [notes, setNotes] = useState("");
   const [success, setSuccess] = useState(false);
+  
+  const isSubmitting = submitFeedbackMutation.isPending;
+  const feedbackError = submitFeedbackMutation.error?.message || null;
 
   // Pre-fill form with existing feedback
   useEffect(() => {
@@ -71,15 +75,19 @@ export default function RecipeFeedbackForm({
       );
       return;
     }
-    const ok = await submitFeedback({
-      user_id: user.id,
-      recipe_id: recipeId,
-      week_number: weekNumber,
-      feedback,
-    });
-    if (ok) {
+    
+    try {
+      await submitFeedbackMutation.mutateAsync({
+        user_id: user.id,
+        recipe_id: recipeId,
+        week_number: weekNumber,
+        feedback,
+      });
       setSuccess(true);
       if (onFeedbackSubmitted) onFeedbackSubmitted();
+    } catch (err) {
+      // Error is handled by the mutation's error state
+      console.error("Failed to submit feedback:", err);
     }
   };
 

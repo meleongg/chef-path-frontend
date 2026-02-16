@@ -7,9 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useUser, useWeeklyPlans } from "@/hooks";
+import { useUser } from "@/hooks";
+import { useWeeklyPlansQuery, useUserProgressQuery } from "@/hooks/queries";
 import { api } from "@/lib/api";
-import { UserProgress, UserRecipeProgress } from "@/types";
+import { UserRecipeProgress } from "@/types";
 import {
   Calendar,
   Flame,
@@ -36,8 +37,8 @@ interface AnalyticsData {
 
 export default function AnalyticsPage() {
   const { user, isLoading: userLoading } = useUser();
-  const { weeklyPlans, isLoading: plansLoading } = useWeeklyPlans();
-  const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
+  const { data: weeklyPlans, isLoading: plansLoading } = useWeeklyPlansQuery(user?.id);
+  const { data: userProgress } = useUserProgressQuery(user?.id);
   const [allRecipeProgress, setAllRecipeProgress] = useState<
     UserRecipeProgress[]
   >([]);
@@ -57,17 +58,13 @@ export default function AnalyticsPage() {
     },
   });
 
-  // Load user progress and all recipe progress
+  // Load all recipe progress (userProgress is already fetched by TanStack Query)
   useEffect(() => {
     const loadAnalyticsData = async () => {
       if (!user || !weeklyPlans) return;
 
       setIsLoading(true);
       try {
-        // Get overall user progress
-        const progress = await api.getUserProgress(user.id);
-        setUserProgress(progress);
-
         // Get all recipe progress across all weeks
         const allProgressPromises = weeklyPlans.map((plan) =>
           api.getWeeklyRecipeProgress(user.id, plan.week_number)
