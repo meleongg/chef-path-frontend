@@ -18,6 +18,7 @@ export const queryKeys = {
     ["recipeProgress", userId, weekNumber] as const,
   recipe: (recipeId: string) => ["recipe", recipeId] as const,
   userProgress: (userId: string) => ["userProgress", userId] as const,
+  nextWeekEligibility: (userId: string) => ["nextWeekEligibility", userId] as const,
 };
 
 /**
@@ -90,6 +91,19 @@ export function useUserProgressQuery(userId: string | undefined) {
 }
 
 /**
+ * Check eligibility for generating next week's plan
+ * Cached for 1 minute, invalidated when recipes are completed
+ */
+export function useNextWeekEligibilityQuery(userId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.nextWeekEligibility(userId!),
+    queryFn: () => api.checkNextWeekEligibility(userId!),
+    enabled: !!userId,
+    staleTime: 1 * 60 * 1000, // 1 minute - should update when recipe status changes
+  });
+}
+
+/**
  * Mutation: Update recipe progress
  * Automatically invalidates related queries on success
  * Note: This is a placeholder - implement actual update API call when backend supports it
@@ -121,9 +135,12 @@ export function useUpdateRecipeProgressMutation() {
           variables.weekNumber,
         ),
       });
-      // Also invalidate overall user progress
+      // Also invalidate overall user progress and eligibility
       queryClient.invalidateQueries({
         queryKey: queryKeys.userProgress(variables.userId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.nextWeekEligibility(variables.userId),
       });
     },
   });
@@ -152,6 +169,9 @@ export function useCompleteWeekMutation() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.userProgress(variables.userId),
       });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.nextWeekEligibility(variables.userId),
+      });
     },
   });
 }
@@ -173,6 +193,9 @@ export function useSubmitFeedbackMutation() {
             variables.user_id,
             variables.week_number,
           ),
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.nextWeekEligibility(variables.user_id),
         });
       }
     },

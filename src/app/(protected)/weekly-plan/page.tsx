@@ -5,7 +5,12 @@ import Link from "next/link";
 
 import { useApp } from "@/contexts/AppContext";
 import { useUser } from "@/hooks";
-import { useWeeklyPlansQuery, useWeeklyRecipeProgressQuery, queryKeys } from "@/hooks/queries";
+import {
+  queryKeys,
+  useNextWeekEligibilityQuery,
+  useWeeklyPlansQuery,
+  useWeeklyRecipeProgressQuery,
+} from "@/hooks/queries";
 import { api } from "@/lib/api";
 import { NextWeekEligibility, WeeklyPlanResponse } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
@@ -17,11 +22,9 @@ export default function WeeklyPlanPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState("");
   const [generatedPlan, setGeneratedPlan] = useState<WeeklyPlanResponse | null>(
-    null
+    null,
   );
-  const [nextWeekEligibility, setNextWeekEligibility] =
-    useState<NextWeekEligibility | null>(null);
-  
+
   const { user, isLoading: userLoading } = useUser();
   const { state } = useApp();
   const currentWeek = state.currentWeek;
@@ -29,16 +32,24 @@ export default function WeeklyPlanPage() {
   const queryClient = useQueryClient();
 
   // TanStack Query hooks - automatically cached from layout
-  const { data: weeklyPlans, isLoading: plansLoading, error } = useWeeklyPlansQuery(user?.id);
-  const { data: recipeProgress } = useWeeklyRecipeProgressQuery(user?.id, currentWeek);
+  const {
+    data: weeklyPlans,
+    isLoading: plansLoading,
+    error,
+  } = useWeeklyPlansQuery(user?.id);
+  const { data: recipeProgress } = useWeeklyRecipeProgressQuery(
+    user?.id,
+    currentWeek,
+  );
+  const { data: nextWeekEligibility } = useNextWeekEligibilityQuery(user?.id);
 
   // Helper to check if recipe is completed
   const isRecipeCompleted = (recipeId: string, weekNumber: number): boolean => {
     if (!recipeProgress) return false;
     const progress = recipeProgress.find(
-      (p) => p.recipe_id === recipeId && p.week_number === weekNumber
+      (p) => p.recipe_id === recipeId && p.week_number === weekNumber,
     );
-    return progress?.status === 'completed' || false;
+    return progress?.status === "completed" || false;
   };
 
   const getCurrentWeekPlan = () => {
@@ -65,21 +76,6 @@ export default function WeeklyPlanPage() {
     }
   }, [user, userLoading, router]);
 
-  // Check eligibility when recipe progress changes
-  useEffect(() => {
-    const checkEligibility = async () => {
-      if (!user) return;
-      try {
-        const eligibility = await api.checkNextWeekEligibility(user.id);
-        setNextWeekEligibility(eligibility);
-      } catch (err) {
-        console.error("Failed to check next week eligibility:", err);
-      }
-    };
-
-    checkEligibility();
-  }, [user, currentPlan]);
-
   const handleGenerateNextWeek = async () => {
     if (!user || !nextWeekEligibility?.can_generate) return;
 
@@ -89,15 +85,20 @@ export default function WeeklyPlanPage() {
     try {
       const plan = await api.generateNextWeekPlan(user.id);
       setGeneratedPlan(plan);
-      
+
       // Invalidate queries to refetch fresh data
-      await queryClient.invalidateQueries({ queryKey: queryKeys.weeklyPlans(user.id) });
-      await queryClient.invalidateQueries({ 
-        queryKey: queryKeys.recipeProgress(user.id, plan.week_number) 
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.weeklyPlans(user.id),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.recipeProgress(user.id, plan.week_number),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.nextWeekEligibility(user.id),
       });
     } catch (err: any) {
       setGenerateError(
-        err?.message || "Failed to generate next week plan. Please try again."
+        err?.message || "Failed to generate next week plan. Please try again.",
       );
     } finally {
       setIsGenerating(false);
@@ -114,18 +115,23 @@ export default function WeeklyPlanPage() {
       const initialIntent = `Create a weekly meal plan for week ${nextWeek} for a user who prefers ${user.cuisine} cuisine, wants ${user.frequency} meals per week, is a ${user.skill_level} cook, and whose goal is ${user.user_goal}.`;
       const plan = await api.generateWeeklyPlan(user.id, initialIntent);
       setGeneratedPlan(plan);
-      
+
       // Invalidate queries to refetch fresh data
-      await queryClient.invalidateQueries({ queryKey: queryKeys.weeklyPlans(user.id) });
-      await queryClient.invalidateQueries({ 
-        queryKey: queryKeys.recipeProgress(user.id, plan.week_number) 
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.weeklyPlans(user.id),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.recipeProgress(user.id, plan.week_number),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.nextWeekEligibility(user.id),
       });
 
       // Dispatch event to notify FloatingChat to show pulse animation
       window.dispatchEvent(new CustomEvent("firstPlanGenerated"));
     } catch (err: any) {
       setGenerateError(
-        err?.message || "Failed to generate weekly plan. Please try again."
+        err?.message || "Failed to generate weekly plan. Please try again.",
       );
     } finally {
       setIsGenerating(false);
@@ -165,7 +171,7 @@ export default function WeeklyPlanPage() {
             <div className="py-4">
               {(() => {
                 const completedCount = currentPlan.recipes.filter((recipe) =>
-                  isRecipeCompleted(recipe.id, currentPlan.week_number)
+                  isRecipeCompleted(recipe.id, currentPlan.week_number),
                 ).length;
                 const totalCount = currentPlan.recipes.length;
                 const progressPercentage =
@@ -248,7 +254,7 @@ export default function WeeklyPlanPage() {
                       {/* Completion Badge */}
                       {isRecipeCompleted(
                         recipe.id,
-                        currentPlan.week_number
+                        currentPlan.week_number,
                       ) && (
                         <div className="absolute top-3 right-3 z-10 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1.5">
                           <Check className="w-3 h-3" />
@@ -290,7 +296,8 @@ export default function WeeklyPlanPage() {
             </div>
           ) : (
             /* Only show "no plan" UI when we know for sure there are no plans */
-            weeklyPlans && weeklyPlans.length === 0 && (
+            weeklyPlans &&
+            weeklyPlans.length === 0 && (
               <div className="text-center py-8">
                 <div className="mb-6">
                   <p className="text-lg text-muted-foreground mb-2">
