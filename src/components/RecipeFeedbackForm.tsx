@@ -19,7 +19,6 @@ import { useUser } from "@/hooks";
 import { useSubmitFeedbackMutation } from "@/hooks/queries";
 import { useEffect, useState } from "react";
 
-
 interface RecipeFeedbackFormProps {
   recipeId: string;
   weekNumber: number;
@@ -41,7 +40,7 @@ export default function RecipeFeedbackForm({
   );
   const [notes, setNotes] = useState("");
   const [success, setSuccess] = useState(false);
-  
+
   const isSubmitting = submitFeedbackMutation.isPending;
   const feedbackError = submitFeedbackMutation.error?.message || null;
 
@@ -75,7 +74,7 @@ export default function RecipeFeedbackForm({
       );
       return;
     }
-    
+
     try {
       await submitFeedbackMutation.mutateAsync({
         user_id: user.id,
@@ -100,16 +99,17 @@ export default function RecipeFeedbackForm({
       {success ? (
         <div className="flex flex-col items-center justify-center py-12">
           <div className="text-green-600 font-medium text-lg">
-            {existingFeedback ? "Feedback updated successfully!" : "Thank you for your feedback!"}
+            {existingFeedback
+              ? "Feedback updated successfully!"
+              : "Thank you for your feedback!"}
           </div>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <DialogDescription className="mb-4">
-            {existingFeedback 
+            {existingFeedback
               ? "Update your feedback for this recipe."
-              : "Let us know how this recipe went for you!"
-            }
+              : "Let us know how this recipe went for you!"}
           </DialogDescription>
           <Label htmlFor="feedback-select">How was this recipe?</Label>
           <Select

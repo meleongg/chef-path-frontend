@@ -9,7 +9,11 @@ import {
   Recipe,
   SubmitFeedbackRequest,
   SubmitFeedbackResponse,
+  SwapRecipeRequest,
+  SwapRecipeResponse,
   UpdateAccountRequest,
+  UpdateRecipeStatusRequest,
+  UpdateRecipeStatusResponse,
   User,
   UserProfileRequest,
   UserProgress,
@@ -108,7 +112,7 @@ async function refreshAccessToken(): Promise<boolean> {
  */
 async function handleResponse<T>(
   response: Response,
-  retryFn?: () => Promise<Response>,
+  retryFn?: () => Promise<Response>
 ): Promise<T> {
   // If 401 and we have a retry function, attempt token refresh
   if (response.status === 401 && retryFn && !isRefreshingToken) {
@@ -126,7 +130,7 @@ async function handleResponse<T>(
     throw new ApiError(
       `API Error: ${response.status} ${response.statusText} - ${errorText}`,
       response.status,
-      response,
+      response
     );
   }
 
@@ -138,7 +142,7 @@ async function handleResponse<T>(
  */
 function createRetryFn(
   url: string,
-  options: RequestInit,
+  options: RequestInit
 ): () => Promise<Response> {
   return () => {
     // Update auth headers with new token
@@ -153,7 +157,7 @@ function createRetryFn(
 export const api = {
   async generalChat(
     userId: string,
-    chatInput: GeneralChatRequest,
+    chatInput: GeneralChatRequest
   ): Promise<GeneralChatResponse> {
     const url = `${PLAN_BASE_URL}/general/${userId}`;
     const options: RequestInit = {
@@ -167,13 +171,13 @@ export const api = {
     const response = await fetch(url, options);
     return handleResponse<GeneralChatResponse>(
       response,
-      createRetryFn(url, options),
+      createRetryFn(url, options)
     );
   },
 
   async adaptiveChat(
     userId: string,
-    chatInput: GeneralChatRequest,
+    chatInput: GeneralChatRequest
   ): Promise<AdaptiveChatResponse> {
     const url = `${PLAN_BASE_URL}/adaptive_chat/${userId}`;
     const options: RequestInit = {
@@ -187,13 +191,13 @@ export const api = {
     const response = await fetch(url, options);
     return handleResponse<AdaptiveChatResponse>(
       response,
-      createRetryFn(url, options),
+      createRetryFn(url, options)
     );
   },
 
   async generateWeeklyPlan(
     userId: string,
-    initial_intent: string,
+    initial_intent: string
   ): Promise<WeeklyPlanResponse> {
     const url = `${PLAN_BASE_URL}/generate/${userId}`;
     const options: RequestInit = {
@@ -207,7 +211,7 @@ export const api = {
     const response = await fetch(url, options);
     return handleResponse<WeeklyPlanResponse>(
       response,
-      createRetryFn(url, options),
+      createRetryFn(url, options)
     );
   },
 
@@ -222,7 +226,7 @@ export const api = {
     const response = await fetch(url, options);
     return handleResponse<NextWeekEligibility>(
       response,
-      createRetryFn(url, options),
+      createRetryFn(url, options)
     );
   },
 
@@ -238,13 +242,13 @@ export const api = {
     const response = await fetch(url, options);
     return handleResponse<WeeklyPlanResponse>(
       response,
-      createRetryFn(url, options),
+      createRetryFn(url, options)
     );
   },
 
   async chatModifyPlan(
     userId: string,
-    user_message: string,
+    user_message: string
   ): Promise<WeeklyPlanResponse> {
     const url = `${PLAN_BASE_URL}/chat/${userId}`;
     const options: RequestInit = {
@@ -258,27 +262,49 @@ export const api = {
     const response = await fetch(url, options);
     return handleResponse<WeeklyPlanResponse>(
       response,
-      createRetryFn(url, options),
+      createRetryFn(url, options)
     );
   },
 
-  async confirmPlanModification(
+  async swapRecipe(
     userId: string,
-    user_message: string,
-  ): Promise<WeeklyPlanResponse> {
-    const url = `${PLAN_BASE_URL}/chat/confirm_modification/${userId}`;
+    request: SwapRecipeRequest
+  ): Promise<SwapRecipeResponse> {
+    const url = `${PLAN_BASE_URL}/swap-recipe/${userId}`;
     const options: RequestInit = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
-      body: JSON.stringify({ user_message }),
+      body: JSON.stringify(request),
     };
     const response = await fetch(url, options);
-    return handleResponse<WeeklyPlanResponse>(
+    return handleResponse<SwapRecipeResponse>(
       response,
-      createRetryFn(url, options),
+      createRetryFn(url, options)
+    );
+  },
+
+  async updateRecipeStatus(
+    userId: string,
+    recipeId: string,
+    weekNumber: number,
+    request: UpdateRecipeStatusRequest
+  ): Promise<UpdateRecipeStatusResponse> {
+    const url = `${API_BASE_URL}/progress/${userId}/recipe/${recipeId}/week/${weekNumber}`;
+    const options: RequestInit = {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(request),
+    };
+    const response = await fetch(url, options);
+    return handleResponse<UpdateRecipeStatusResponse>(
+      response,
+      createRetryFn(url, options)
     );
   },
 
@@ -326,7 +352,7 @@ export const api = {
   // Account Management
   async updateAccount(
     userId: string,
-    accountData: UpdateAccountRequest,
+    accountData: UpdateAccountRequest
   ): Promise<User> {
     const url = `${API_BASE_URL}/users/${userId}/account`;
     const options: RequestInit = {
@@ -343,7 +369,7 @@ export const api = {
 
   async changePassword(
     userId: string,
-    passwordData: ChangePasswordRequest,
+    passwordData: ChangePasswordRequest
   ): Promise<MessageResponse> {
     const url = `${API_BASE_URL}/users/${userId}/password`;
     const options: RequestInit = {
@@ -357,7 +383,7 @@ export const api = {
     const response = await fetch(url, options);
     return handleResponse<MessageResponse>(
       response,
-      createRetryFn(url, options),
+      createRetryFn(url, options)
     );
   },
 
@@ -373,7 +399,7 @@ export const api = {
     const response = await fetch(url, options);
     return handleResponse<MessageResponse>(
       response,
-      createRetryFn(url, options),
+      createRetryFn(url, options)
     );
   },
 
@@ -443,7 +469,7 @@ export const api = {
   async getRecipeProgress(
     userId: string,
     recipeId: string,
-    weekNumber: number,
+    weekNumber: number
   ): Promise<UserRecipeProgress | null> {
     try {
       const url = `${API_BASE_URL}/progress/${userId}/recipe/${recipeId}/week/${weekNumber}`;
@@ -459,7 +485,7 @@ export const api = {
       }
       return handleResponse<UserRecipeProgress>(
         response,
-        createRetryFn(url, options),
+        createRetryFn(url, options)
       );
     } catch (err) {
       return null; // Return null if not found
@@ -467,7 +493,7 @@ export const api = {
   },
 
   async submitFeedback(
-    feedbackData: SubmitFeedbackRequest,
+    feedbackData: SubmitFeedbackRequest
   ): Promise<SubmitFeedbackResponse> {
     const url = `${API_BASE_URL}/feedback/${feedbackData.user_id}`;
     const options: RequestInit = {
@@ -481,7 +507,7 @@ export const api = {
     const response = await fetch(url, options);
     return handleResponse<SubmitFeedbackResponse>(
       response,
-      createRetryFn(url, options),
+      createRetryFn(url, options)
     );
   },
 
@@ -499,7 +525,7 @@ export const api = {
 
   async getWeeklyRecipeProgress(
     userId: string,
-    weekNumber: number,
+    weekNumber: number
   ): Promise<UserRecipeProgress[]> {
     const url = `${API_BASE_URL}/progress/${userId}/week/${weekNumber}`;
     const options: RequestInit = {
@@ -511,7 +537,7 @@ export const api = {
     const response = await fetch(url, options);
     return handleResponse<UserRecipeProgress[]>(
       response,
-      createRetryFn(url, options),
+      createRetryFn(url, options)
     );
   },
 };

@@ -18,7 +18,8 @@ export const queryKeys = {
     ["recipeProgress", userId, weekNumber] as const,
   recipe: (recipeId: string) => ["recipe", recipeId] as const,
   userProgress: (userId: string) => ["userProgress", userId] as const,
-  nextWeekEligibility: (userId: string) => ["nextWeekEligibility", userId] as const,
+  nextWeekEligibility: (userId: string) =>
+    ["nextWeekEligibility", userId] as const,
 };
 
 /**
@@ -39,7 +40,7 @@ export function useWeeklyPlansQuery(userId: string | undefined) {
  */
 export function useWeeklyPlanQuery(
   userId: string | undefined,
-  weekNumber: number,
+  weekNumber: number
 ) {
   return useQuery({
     queryKey: queryKeys.weeklyPlan(userId!, weekNumber),
@@ -55,7 +56,7 @@ export function useWeeklyPlanQuery(
  */
 export function useWeeklyRecipeProgressQuery(
   userId: string | undefined,
-  weekNumber: number,
+  weekNumber: number
 ) {
   return useQuery({
     queryKey: queryKeys.recipeProgress(userId!, weekNumber),
@@ -132,7 +133,7 @@ export function useUpdateRecipeProgressMutation() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.recipeProgress(
           variables.userId,
-          variables.weekNumber,
+          variables.weekNumber
         ),
       });
       // Also invalidate overall user progress and eligibility
@@ -191,13 +192,77 @@ export function useSubmitFeedbackMutation() {
         queryClient.invalidateQueries({
           queryKey: queryKeys.recipeProgress(
             variables.user_id,
-            variables.week_number,
+            variables.week_number
           ),
         });
         queryClient.invalidateQueries({
           queryKey: queryKeys.nextWeekEligibility(variables.user_id),
         });
       }
+    },
+  });
+}
+/**
+ * Mutation: Swap a recipe in the weekly plan
+ * Automatically invalidates related queries on success
+ */
+export function useSwapRecipeMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userId, request }: { userId: string; request: any }) =>
+      api.swapRecipe(userId, request),
+    onSuccess: (_, variables) => {
+      // Invalidate all related queries to reflect the swap
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.weeklyPlans(variables.userId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.recipeProgress(
+          variables.userId,
+          variables.request.week_number || 1
+        ),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.nextWeekEligibility(variables.userId),
+      });
+    },
+  });
+}
+
+/**
+ * Mutation: Update recipe status (mark as incomplete/complete)
+ * Automatically invalidates related queries on success
+ */
+export function useToggleRecipeStatusMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      userId,
+      recipeId,
+      weekNumber,
+      request,
+    }: {
+      userId: string;
+      recipeId: string;
+      weekNumber: number;
+      request: any;
+    }) => api.updateRecipeStatus(userId, recipeId, weekNumber, request),
+    onSuccess: (_, variables) => {
+      // Invalidate all related queries to reflect the status change
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.weeklyPlans(variables.userId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.recipeProgress(
+          variables.userId,
+          variables.weekNumber
+        ),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.nextWeekEligibility(variables.userId),
+      });
     },
   });
 }

@@ -18,9 +18,6 @@ export default function FloatingChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPulse, setShowPulse] = useState(false);
-  const [pendingModificationId, setPendingModificationId] = useState<
-    string | null
-  >(null);
   const { user } = useUser();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -77,43 +74,25 @@ export default function FloatingChat() {
       // Update user message type based on classified intent
       const updatedUserMessage: ChatMessage = {
         ...userMessage,
-        type:
-          response.intent === "plan_modification"
-            ? "plan_modification"
-            : "general",
+        type: response.intent === "analytics" ? "analytics" : "general",
       };
 
       // Update the user message with classified intent
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === userMessage.id ? updatedUserMessage : msg,
-        ),
+          msg.id === userMessage.id ? updatedUserMessage : msg
+        )
       );
-
-      // Check if plan modification requires confirmation
-      // Backend returns boolean, not string
-      const requiresConfirmation = response.requires_confirmation === true;
 
       const aiMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: "ai",
         text: response.response,
         timestamp: new Date(),
-        type:
-          response.intent === "plan_modification"
-            ? "plan_modification"
-            : "general",
-        // Set these properties BEFORE adding to messages array
-        requires_confirmation: requiresConfirmation,
-        originalRequest: requiresConfirmation ? userMessage.text : undefined,
+        type: response.intent === "analytics" ? "analytics" : "general",
       };
 
-      // Set pending modification ID if confirmation is required
-      if (requiresConfirmation) {
-        setPendingModificationId(aiMessage.id);
-      }
-
-      // Now add the message with all properties set
+      // Add the message to chat
       setMessages((prev) => [...prev, aiMessage]);
     } catch (err: any) {
       const errorMsg =
@@ -127,67 +106,6 @@ export default function FloatingChat() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleConfirmModification = async (
-    messageId: string,
-    originalRequest: string,
-  ) => {
-    if (!user) return;
-
-    setIsLoading(true);
-    setPendingModificationId(null);
-
-    try {
-      // Call the LangGraph endpoint to execute the plan modification
-      const updatedPlan = await api.confirmPlanModification(
-        user.id,
-        originalRequest,
-      );
-
-      // Success message
-      const confirmMessage: ChatMessage = {
-        id: `system-${Date.now()}`,
-        sender: "ai",
-        text: `✅ Plan modification complete! Your week ${updatedPlan.week_number} plan has been updated.\n\nClick the button below to refresh and see your changes.`,
-        timestamp: new Date(),
-        type: "plan_modification",
-        showRefreshButton: true,
-      };
-
-      setMessages((prev) => [...prev, confirmMessage]);
-    } catch (err: any) {
-      setError(err?.message || "Failed to confirm modification.");
-
-      // Add error message to chat
-      const errorMessage: ChatMessage = {
-        id: `error-${Date.now()}`,
-        sender: "ai",
-        text: `❌ Failed to modify plan: ${
-          err?.message || "Unknown error"
-        }. Please try again.`,
-        timestamp: new Date(),
-        type: "plan_modification",
-      };
-
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCancelModification = () => {
-    setPendingModificationId(null);
-
-    const cancelMessage: ChatMessage = {
-      id: `system-${Date.now()}`,
-      sender: "ai",
-      text: "Modification cancelled. Your plan remains unchanged.",
-      timestamp: new Date(),
-      type: "general",
-    };
-
-    setMessages((prev) => [...prev, cancelMessage]);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -300,7 +218,7 @@ export default function FloatingChat() {
                       {message.text.split("\n").map((line, idx) => {
                         // Check if line is a numbered list item (e.g., "1. ", "2. ")
                         const numberedMatch = line.match(
-                          /^(\d+)\.\s+\*\*(.*?)\*\*(.*)$/,
+                          /^(\d+)\.\s+\*\*(.*?)\*\*(.*)$/
                         );
                         if (numberedMatch) {
                           return (
@@ -363,55 +281,6 @@ export default function FloatingChat() {
                         minute: "2-digit",
                       })}
                     </p>
-
-                    {/* Confirmation Buttons for Plan Modifications */}
-                    {message.sender === "ai" &&
-                      message.id === pendingModificationId &&
-                      message.originalRequest && (
-                        <div className="mt-3 pt-3 border-t border-border flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={handleCancelModification}
-                            disabled={isLoading}
-                            className="flex-1 border-2 bg-[hsl(var(--paprika))]/10 hover:bg-[hsl(var(--paprika))]/20 text-[hsl(var(--paprika))] border-[hsl(var(--paprika))]/40 hover:border-[hsl(var(--paprika))]"
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() =>
-                              handleConfirmModification(
-                                message.id,
-                                message.originalRequest!,
-                              )
-                            }
-                            disabled={isLoading}
-                            className="flex-1 bg-[hsl(var(--sage))] hover:bg-[hsl(var(--sage))]/90 text-white font-semibold border-2 border-[hsl(var(--sage))]/60"
-                          >
-                            {isLoading ? "Processing..." : "Confirm Changes"}
-                          </Button>
-                        </div>
-                      )}
-
-                    {/* Refresh Button for Successful Plan Modifications */}
-                    {message.sender === "ai" && message.showRefreshButton && (
-                      <div className="mt-3 pt-3 border-t border-gray-300">
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            if (pathname === "/weekly-plan") {
-                              window.location.reload();
-                            } else {
-                              window.location.href = "/weekly-plan";
-                            }
-                          }}
-                          className="w-full bg-[hsl(var(--sage))] hover:bg-[hsl(var(--sage))]/90 text-white font-semibold border-2 border-[hsl(var(--sage))]/60"
-                        >
-                          🔄 Refresh Plan Page
-                        </Button>
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}

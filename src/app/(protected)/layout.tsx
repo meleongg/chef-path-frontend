@@ -5,7 +5,10 @@ import ClientNavbar from "@/components/ClientNavbar";
 import FloatingChat from "@/components/FloatingChat";
 import { useApp } from "@/contexts/AppContext";
 import { useUser } from "@/hooks";
-import { useWeeklyPlansQuery, useWeeklyRecipeProgressQuery } from "@/hooks/queries";
+import {
+  useWeeklyPlansQuery,
+  useWeeklyRecipeProgressQuery,
+} from "@/hooks/queries";
 
 export default function ProtectedLayout({
   children,
@@ -19,7 +22,10 @@ export default function ProtectedLayout({
   // TanStack Query automatically fetches and caches data
   // These hooks will deduplicate requests if called from multiple components
   const weeklyPlansQuery = useWeeklyPlansQuery(user?.id);
-  const recipeProgressQuery = useWeeklyRecipeProgressQuery(user?.id, currentWeek);
+  const recipeProgressQuery = useWeeklyRecipeProgressQuery(
+    user?.id,
+    currentWeek
+  );
 
   // Note: No manual loading needed!
   // Queries automatically fetch when enabled (user?.id exists)

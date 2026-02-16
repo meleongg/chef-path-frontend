@@ -23,10 +23,10 @@ interface AuthState {
 // Auth Context Interface
 interface AuthContextValue extends AuthState {
   login: (
-    credentials: LoginRequest,
+    credentials: LoginRequest
   ) => Promise<{ success: boolean; error?: string }>;
   register: (
-    data: RegisterRequest,
+    data: RegisterRequest
   ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<boolean>;
@@ -143,7 +143,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               "Content-Type": "application/json",
               Authorization: `Bearer ${data.access_token}`,
             },
-          },
+          }
         );
 
         if (userResponse.ok) {
@@ -203,7 +203,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   const login = useCallback(
     async (
-      credentials: LoginRequest,
+      credentials: LoginRequest
     ): Promise<{ success: boolean; error?: string }> => {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
@@ -270,7 +270,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return { success: false, error: errorMessage };
       }
     },
-    [],
+    []
   );
 
   /**
@@ -278,7 +278,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   const register = useCallback(
     async (
-      data: RegisterRequest,
+      data: RegisterRequest
     ): Promise<{ success: boolean; error?: string }> => {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
@@ -348,7 +348,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return { success: false, error: errorMessage };
       }
     },
-    [],
+    []
   );
 
   /**
@@ -440,7 +440,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return null;
       }
     },
-    [],
+    []
   );
 
   const value: AuthContextValue = {

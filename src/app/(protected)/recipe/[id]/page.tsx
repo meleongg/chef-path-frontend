@@ -27,12 +27,12 @@ export default function RecipePage({
   const { data: recipe, isLoading } = useRecipeQuery(resolvedParams.id);
   const { data: recipeProgress } = useWeeklyRecipeProgressQuery(
     user?.id,
-    weekNumber,
+    weekNumber
   );
 
   // Check if this specific recipe has feedback/progress
   const existingFeedback = recipeProgress?.find(
-    (p) => p.recipe_id === resolvedParams.id,
+    (p) => p.recipe_id === resolvedParams.id
   );
   const hasFeedback = existingFeedback?.status === "completed";
 
@@ -49,7 +49,7 @@ export default function RecipePage({
 
   const ingredients = parseHelpers.parseRecipeIngredients(recipe.ingredients);
   const instructions = parseHelpers.parseRecipeInstructions(
-    recipe.instructions,
+    recipe.instructions
   );
   const dietaryTags = recipe.dietary_tags
     ? parseHelpers.parseRecipeTags(recipe.dietary_tags)
@@ -71,28 +71,26 @@ export default function RecipePage({
 
         <Card className="shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
           <CardHeader>
-            <div className="flex flex-col gap-4">
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-3xl font-bold text-primary">
-                  {recipe.name}
-                </CardTitle>
-              </div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <CardTitle className="text-3xl font-bold text-primary">
+                {recipe.name}
+              </CardTitle>
               {user && (
                 <Button
                   onClick={() => setShowFeedbackForm(!showFeedbackForm)}
-                  className={`w-full md:w-auto font-semibold border-2 shadow-md hover:shadow-lg transition-all ${
+                  className={`md:w-fit font-semibold border-2 shadow-md hover:shadow-lg transition-all ${
                     hasFeedback
                       ? "bg-green-600 hover:bg-green-700 text-white border-green-700"
                       : "bg-[hsl(var(--paprika))] text-white border-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 transition-colors duration-200"
                   }`}
-                  size="lg"
+                  size="sm"
                 >
                   {hasFeedback && "✓ "}
                   {showFeedbackForm
-                    ? "Hide Feedback Form"
+                    ? "Hide"
                     : hasFeedback
-                      ? "Update Feedback"
-                      : "Give Feedback on This Recipe"}
+                      ? "Update"
+                      : "Feedback"}
                 </Button>
               )}
             </div>
@@ -171,7 +169,7 @@ export default function RecipePage({
                           key={idx}
                           className="text-xs bg-red-100 text-red-800 px-3 py-1 rounded-full font-medium"
                         >
-                          ⚠️ {allergen}
+                          {allergen}
                         </span>
                       ))}
                     </div>

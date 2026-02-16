@@ -116,9 +116,7 @@ export interface GeneralChatResponse {
 
 export interface AdaptiveChatResponse {
   response: string;
-  intent: "general_knowledge" | "plan_modification" | "analytics";
-  requires_confirmation?: boolean;
-  modification_request?: string;
+  intent: "general_knowledge" | "analytics";
 }
 
 export interface GenerateWeeklyPlanRequest {
@@ -210,8 +208,34 @@ export interface ChatMessage {
   sender: "user" | "ai";
   text: string;
   timestamp: Date;
-  type?: "general" | "plan_modification"; // For future intent routing
-  requires_confirmation?: boolean;
-  originalRequest?: string;
+  type?: "general" | "analytics";
   showRefreshButton?: boolean;
+}
+
+export interface SwapRecipeRequest {
+  recipe_id_to_replace: string;
+  week_number?: number;
+  swap_context: string;
+}
+
+export interface SwapRecipeResponse {
+  success: boolean;
+  old_recipe: Recipe;
+  new_recipe: Recipe;
+  message: string;
+}
+
+export interface UpdateRecipeStatusRequest {
+  status: "not_started" | "completed";
+}
+
+export interface UpdateRecipeStatusResponse {
+  id: string;
+  user_id: string;
+  recipe_id: string;
+  week_number: number;
+  status: string;
+  completed_at: string | null;
+  feedback: string | null;
+  rating: number | null;
 }

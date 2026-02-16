@@ -1,5 +1,6 @@
 "use client";
 
+import SwapRecipeModal from "@/components/SwapRecipeModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 
@@ -8,13 +9,22 @@ import { useUser } from "@/hooks";
 import {
   queryKeys,
   useNextWeekEligibilityQuery,
+  useSwapRecipeMutation,
+  useToggleRecipeStatusMutation,
   useWeeklyPlansQuery,
   useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
 import { api } from "@/lib/api";
 import { WeeklyPlanResponse } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, PartyPopper, Rocket, UtensilsCrossed } from "lucide-react";
+import {
+  ArrowRightLeft,
+  Check,
+  PartyPopper,
+  RotateCcw,
+  Rocket,
+  UtensilsCrossed,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -22,14 +32,22 @@ export default function WeeklyPlanPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState("");
   const [generatedPlan, setGeneratedPlan] = useState<WeeklyPlanResponse | null>(
-    null,
+    null
   );
+  const [swapModalOpen, setSwapModalOpen] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState<any | null>(null);
+  const [swapError, setSwapError] = useState("");
+  const [toggleError, setToggleError] = useState("");
 
   const { user, isLoading: userLoading } = useUser();
   const { state } = useApp();
   const currentWeek = state.currentWeek;
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  // Mutations for swapping recipes and toggling status
+  const swapMutation = useSwapRecipeMutation();
+  const toggleStatusMutation = useToggleRecipeStatusMutation();
 
   // TanStack Query hooks - automatically cached from layout
   const {
@@ -39,7 +57,7 @@ export default function WeeklyPlanPage() {
   } = useWeeklyPlansQuery(user?.id);
   const { data: recipeProgress } = useWeeklyRecipeProgressQuery(
     user?.id,
-    currentWeek,
+    currentWeek
   );
   const { data: nextWeekEligibility, isLoading: eligibilityLoading } =
     useNextWeekEligibilityQuery(user?.id);
@@ -48,7 +66,7 @@ export default function WeeklyPlanPage() {
   const isRecipeCompleted = (recipeId: string, weekNumber: number): boolean => {
     if (!recipeProgress) return false;
     const progress = recipeProgress.find(
-      (p) => p.recipe_id === recipeId && p.week_number === weekNumber,
+      (p) => p.recipe_id === recipeId && p.week_number === weekNumber
     );
     return progress?.status === "completed" || false;
   };
@@ -101,7 +119,7 @@ export default function WeeklyPlanPage() {
       });
     } catch (err: any) {
       setGenerateError(
-        err?.message || "Failed to generate next week plan. Please try again.",
+        err?.message || "Failed to generate next week plan. Please try again."
       );
     } finally {
       setIsGenerating(false);
@@ -134,10 +152,68 @@ export default function WeeklyPlanPage() {
       window.dispatchEvent(new CustomEvent("firstPlanGenerated"));
     } catch (err: any) {
       setGenerateError(
-        err?.message || "Failed to generate weekly plan. Please try again.",
+        err?.message || "Failed to generate weekly plan. Please try again."
       );
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleSwapClick = (recipe: any) => {
+    setSelectedRecipe(recipe);
+    setSwapError("");
+    setSwapModalOpen(true);
+  };
+
+  const handleSwapConfirm = async (context: string) => {
+    if (!user || !selectedRecipe || !currentPlan) return;
+
+    try {
+      const result = await swapMutation.mutateAsync({
+        userId: user.id,
+        request: {
+          recipe_id_to_replace: selectedRecipe.id,
+          week_number: currentPlan.week_number,
+          swap_context: context,
+        },
+      });
+
+      // Show success notification
+      console.log(
+        `✓ Swapped ${result.old_recipe.name} with ${result.new_recipe.name}`
+      );
+
+      // Close modal and reset state
+      setSwapModalOpen(false);
+      setSelectedRecipe(null);
+    } catch (err: any) {
+      const errorMsg =
+        err?.message === "Cannot swap a completed recipe"
+          ? "Cannot swap a completed recipe"
+          : err?.message || "Failed to swap recipe. Please try again.";
+      setSwapError(errorMsg);
+    }
+  };
+
+  const handleMarkIncomplete = async (recipeId: string, weekNumber: number) => {
+    if (!user) return;
+
+    try {
+      setToggleError("");
+      await toggleStatusMutation.mutateAsync({
+        userId: user.id,
+        recipeId,
+        weekNumber,
+        request: { status: "not_started" },
+      });
+
+      // Show success notification
+      console.log("✓ Marked recipe as incomplete");
+    } catch (err: any) {
+      const errorMsg =
+        err?.message ||
+        "Failed to mark recipe as incomplete. Please try again.";
+      setToggleError(errorMsg);
     }
   };
 
@@ -183,7 +259,7 @@ export default function WeeklyPlanPage() {
             <div className="py-4">
               {(() => {
                 const completedCount = currentPlan.recipes.filter((recipe) =>
-                  isRecipeCompleted(recipe.id, currentPlan.week_number),
+                  isRecipeCompleted(recipe.id, currentPlan.week_number)
                 ).length;
                 const totalCount = currentPlan.recipes.length;
                 const progressPercentage =
@@ -266,7 +342,7 @@ export default function WeeklyPlanPage() {
                       {/* Completion Badge */}
                       {isRecipeCompleted(
                         recipe.id,
-                        currentPlan.week_number,
+                        currentPlan.week_number
                       ) && (
                         <div className="absolute top-3 right-3 z-10 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1.5">
                           <Check className="w-3 h-3" />
@@ -297,8 +373,66 @@ export default function WeeklyPlanPage() {
                         <div className="font-bold text-lg text-primary mb-1 group-hover:underline line-clamp-2">
                           {recipe.name}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-muted-foreground mb-4">
                           {recipe.cuisine}
+                        </div>
+
+                        {/* Swap Button */}
+                        <div className="mt-auto pt-4 border-t border-gray-200">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const isCompleted = isRecipeCompleted(
+                                recipe.id,
+                                currentPlan.week_number
+                              );
+                              if (!isCompleted) {
+                                handleSwapClick(recipe);
+                              }
+                            }}
+                            disabled={isRecipeCompleted(
+                              recipe.id,
+                              currentPlan.week_number
+                            )}
+                            title={
+                              isRecipeCompleted(
+                                recipe.id,
+                                currentPlan.week_number
+                              )
+                                ? "Cannot swap completed recipes"
+                                : "Swap this recipe"
+                            }
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-[hsl(var(--paprika))] hover:bg-amber-100/60 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                          >
+                            <ArrowRightLeft className="w-4 h-4" />
+                            Swap
+                          </button>
+
+                          {/* Mark as Incomplete Button */}
+                          {isRecipeCompleted(
+                            recipe.id,
+                            currentPlan.week_number
+                          ) && (
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleMarkIncomplete(
+                                  recipe.id,
+                                  currentPlan.week_number
+                                );
+                              }}
+                              disabled={toggleStatusMutation.isPending}
+                              title="Mark this recipe as incomplete"
+                              className="w-full mt-2 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-gray-600 hover:bg-gray-100/60 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                              {toggleStatusMutation.isPending
+                                ? "Marking..."
+                                : "Mark Incomplete"}
+                            </button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -354,6 +488,46 @@ export default function WeeklyPlanPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Swap Recipe Modal */}
+      <SwapRecipeModal
+        isOpen={swapModalOpen}
+        recipeId={selectedRecipe?.id ?? ""}
+        recipeName={selectedRecipe?.name ?? ""}
+        weekNumber={currentPlan?.week_number ?? 0}
+        onClose={() => {
+          setSwapModalOpen(false);
+          setSwapError("");
+        }}
+        onConfirm={handleSwapConfirm}
+        isLoading={swapMutation.isPending}
+      />
+
+      {/* Swap Error Toast */}
+      {swapError && (
+        <div className="fixed bottom-4 right-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg shadow-lg">
+          <p className="font-medium">{swapError}</p>
+          <button
+            onClick={() => setSwapError("")}
+            className="mt-2 text-sm text-red-600 hover:text-red-800 font-medium"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Toggle Status Error Toast */}
+      {toggleError && (
+        <div className="fixed bottom-4 right-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg shadow-lg">
+          <p className="font-medium">{toggleError}</p>
+          <button
+            onClick={() => setToggleError("")}
+            className="mt-2 text-sm text-red-600 hover:text-red-800 font-medium"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
     </div>
   );
 }

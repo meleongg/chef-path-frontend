@@ -33,7 +33,7 @@ export default function RecipeDetailPage() {
   useEffect(() => {
     if (recipe && weeklyRecipeProgress) {
       const progress = weeklyRecipeProgress.find(
-        (p) => p.recipe_id === recipe.id && p.status === "completed",
+        (p) => p.recipe_id === recipe.id && p.status === "completed"
       );
       setCompleted(!!progress);
     }
@@ -61,7 +61,9 @@ export default function RecipeDetailPage() {
 
   // Parse recipe data
   const ingredients = parseHelpers.parseRecipeIngredients(recipe.ingredients);
-  const instructions = parseHelpers.parseRecipeInstructions(recipe.instructions);
+  const instructions = parseHelpers.parseRecipeInstructions(
+    recipe.instructions
+  );
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[hsl(var(--paprika))]/10 via-[hsl(var(--sage))]/10 to-[hsl(var(--turmeric))]/10 relative">

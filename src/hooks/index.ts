@@ -22,7 +22,7 @@ export function useUser() {
   const [error, setError] = useState<string | null>(null);
 
   const updateUserProfile = async (
-    userData: UserProfileRequest,
+    userData: UserProfileRequest
   ): Promise<boolean> => {
     try {
       setIsLoading(true);
@@ -65,7 +65,7 @@ export function useUserProfile() {
   const [error, setError] = useState<string | null>(null);
 
   const updateUserProfile = async (
-    userData: UserProfileRequest,
+    userData: UserProfileRequest
   ): Promise<boolean> => {
     try {
       setIsLoading(true);

@@ -43,7 +43,7 @@ interface AnalyticsData {
 export default function AnalyticsPage() {
   const { user, isLoading: userLoading } = useUser();
   const { data: weeklyPlans, isLoading: plansLoading } = useWeeklyPlansQuery(
-    user?.id,
+    user?.id
   );
   const { data: userProgress } = useUserProgressQuery(user?.id);
 
@@ -98,7 +98,7 @@ export default function AnalyticsPage() {
         }
         return acc;
       },
-      { too_easy: 0, just_right: 0, too_hard: 0 },
+      { too_easy: 0, just_right: 0, too_hard: 0 }
     );
 
     // Determine average difficulty
@@ -123,14 +123,14 @@ export default function AnalyticsPage() {
     // Start from current week and go backwards
     let currentStreak = 0;
     const sortedPlans = [...weeklyPlans].sort(
-      (a, b) => b.week_number - a.week_number,
+      (a, b) => b.week_number - a.week_number
     );
 
     // Find the most recent week with any completed recipes first
     let streakStarted = false;
     for (const plan of sortedPlans) {
       const weekProgress = allRecipeProgress.filter(
-        (p) => p.week_number === plan.week_number && p.feedback !== null,
+        (p) => p.week_number === plan.week_number && p.feedback !== null
       );
 
       if (weekProgress.length > 0) {
