@@ -12,7 +12,7 @@ import {
   useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
 import { api } from "@/lib/api";
-import { NextWeekEligibility, WeeklyPlanResponse } from "@/types";
+import { WeeklyPlanResponse } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, PartyPopper, Rocket, UtensilsCrossed } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -41,7 +41,8 @@ export default function WeeklyPlanPage() {
     user?.id,
     currentWeek,
   );
-  const { data: nextWeekEligibility } = useNextWeekEligibilityQuery(user?.id);
+  const { data: nextWeekEligibility, isLoading: eligibilityLoading } =
+    useNextWeekEligibilityQuery(user?.id);
 
   // Helper to check if recipe is completed
   const isRecipeCompleted = (recipeId: string, weekNumber: number): boolean => {
@@ -75,6 +76,8 @@ export default function WeeklyPlanPage() {
       router.push("/onboarding");
     }
   }, [user, userLoading, router]);
+
+  const isLoading = userLoading || plansLoading || eligibilityLoading;
 
   const handleGenerateNextWeek = async () => {
     if (!user || !nextWeekEligibility?.can_generate) return;
@@ -138,7 +141,8 @@ export default function WeeklyPlanPage() {
     }
   };
 
-  if (userLoading || plansLoading || !user || isInitializing) {
+  // Only show full-screen loading if user is not authenticated yet
+  if (userLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-secondary/10">
         <div className="text-center">
@@ -166,8 +170,16 @@ export default function WeeklyPlanPage() {
           {generateError && (
             <div className="text-red-600 text-center mb-4">{generateError}</div>
           )}
-          {/* Show current plan if available */}
-          {currentPlan ? (
+
+          {/* Show loading state while data is being fetched */}
+          {isLoading || isInitializing ? (
+            <div className="py-16 text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">
+                Loading your weekly plan...
+              </p>
+            </div>
+          ) : currentPlan ? (
             <div className="py-4">
               {(() => {
                 const completedCount = currentPlan.recipes.filter((recipe) =>

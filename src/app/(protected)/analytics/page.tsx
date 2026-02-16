@@ -8,9 +8,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useUser } from "@/hooks";
-import { useWeeklyPlansQuery, useUserProgressQuery } from "@/hooks/queries";
+import {
+  queryKeys,
+  useUserProgressQuery,
+  useWeeklyPlansQuery,
+} from "@/hooks/queries";
 import { api } from "@/lib/api";
 import { UserRecipeProgress } from "@/types";
+import { useQueries } from "@tanstack/react-query";
 import {
   Calendar,
   Flame,
@@ -19,7 +24,7 @@ import {
   Target,
   ThumbsUp,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 
 interface AnalyticsData {
   totalWeeks: number;
@@ -37,54 +42,47 @@ interface AnalyticsData {
 
 export default function AnalyticsPage() {
   const { user, isLoading: userLoading } = useUser();
-  const { data: weeklyPlans, isLoading: plansLoading } = useWeeklyPlansQuery(user?.id);
+  const { data: weeklyPlans, isLoading: plansLoading } = useWeeklyPlansQuery(
+    user?.id,
+  );
   const { data: userProgress } = useUserProgressQuery(user?.id);
-  const [allRecipeProgress, setAllRecipeProgress] = useState<
-    UserRecipeProgress[]
-  >([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  const [analytics, setAnalytics] = useState<AnalyticsData>({
-    totalWeeks: 0,
-    totalRecipes: 0,
-    completedRecipes: 0,
-    completionRate: 0,
-    averageDifficulty: "N/A",
-    currentStreak: 0,
-    feedbackDistribution: {
-      too_easy: 0,
-      just_right: 0,
-      too_hard: 0,
-    },
+  // Use TanStack Query's useQueries to fetch all weeks' progress with caching
+  const progressQueries = useQueries({
+    queries: (weeklyPlans || []).map((plan) => ({
+      queryKey: queryKeys.recipeProgress(user?.id!, plan.week_number),
+      queryFn: () => api.getWeeklyRecipeProgress(user!.id, plan.week_number),
+      enabled: !!user,
+      staleTime: 1 * 60 * 1000, // 1 minute - matches other progress queries
+    })),
   });
 
-  // Load all recipe progress (userProgress is already fetched by TanStack Query)
-  useEffect(() => {
-    const loadAnalyticsData = async () => {
-      if (!user || !weeklyPlans) return;
+  // Flatten all progress data from cached queries
+  const allRecipeProgress = useMemo(() => {
+    return progressQueries
+      .filter((query) => query.data)
+      .flatMap((query) => query.data as UserRecipeProgress[]);
+  }, [progressQueries]);
 
-      setIsLoading(true);
-      try {
-        // Get all recipe progress across all weeks
-        const allProgressPromises = weeklyPlans.map((plan) =>
-          api.getWeeklyRecipeProgress(user.id, plan.week_number)
-        );
-        const allProgressResults = await Promise.all(allProgressPromises);
-        const flattenedProgress = allProgressResults.flat();
-        setAllRecipeProgress(flattenedProgress);
-      } catch (error) {
-        console.error("Failed to load analytics data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const isLoadingProgress = progressQueries.some((query) => query.isLoading);
 
-    loadAnalyticsData();
-  }, [user, weeklyPlans]);
-
-  // Calculate analytics from the loaded data
-  useEffect(() => {
-    if (!userProgress || !weeklyPlans) return;
+  // Calculate analytics from the loaded data using useMemo to prevent infinite loops
+  const analytics = useMemo<AnalyticsData>(() => {
+    if (!userProgress || !weeklyPlans) {
+      return {
+        totalWeeks: 0,
+        totalRecipes: 0,
+        completedRecipes: 0,
+        completionRate: 0,
+        averageDifficulty: "N/A",
+        currentStreak: 0,
+        feedbackDistribution: {
+          too_easy: 0,
+          just_right: 0,
+          too_hard: 0,
+        },
+      };
+    }
 
     const totalWeeks = weeklyPlans.length;
     const totalRecipes = userProgress.total_recipes;
@@ -100,7 +98,7 @@ export default function AnalyticsPage() {
         }
         return acc;
       },
-      { too_easy: 0, just_right: 0, too_hard: 0 }
+      { too_easy: 0, just_right: 0, too_hard: 0 },
     );
 
     // Determine average difficulty
@@ -125,14 +123,14 @@ export default function AnalyticsPage() {
     // Start from current week and go backwards
     let currentStreak = 0;
     const sortedPlans = [...weeklyPlans].sort(
-      (a, b) => b.week_number - a.week_number
+      (a, b) => b.week_number - a.week_number,
     );
 
     // Find the most recent week with any completed recipes first
     let streakStarted = false;
     for (const plan of sortedPlans) {
       const weekProgress = allRecipeProgress.filter(
-        (p) => p.week_number === plan.week_number && p.feedback !== null
+        (p) => p.week_number === plan.week_number && p.feedback !== null,
       );
 
       if (weekProgress.length > 0) {
@@ -144,7 +142,7 @@ export default function AnalyticsPage() {
       }
     }
 
-    setAnalytics({
+    return {
       totalWeeks,
       totalRecipes,
       completedRecipes,
@@ -152,10 +150,10 @@ export default function AnalyticsPage() {
       averageDifficulty,
       currentStreak,
       feedbackDistribution,
-    });
+    };
   }, [userProgress, weeklyPlans, allRecipeProgress]);
 
-  if (userLoading || plansLoading || isLoading) {
+  if (userLoading || plansLoading || isLoadingProgress) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-secondary/10">
         <div className="text-center">
