@@ -45,7 +45,8 @@ export default function AnalyticsPage() {
   const { data: weeklyPlans, isLoading: plansLoading } = useWeeklyPlansQuery(
     user?.id
   );
-  const { data: userProgress } = useUserProgressQuery(user?.id);
+  const { data: userProgress, isLoading: progressLoading } =
+    useUserProgressQuery(user?.id);
 
   // Use TanStack Query's useQueries to fetch all weeks' progress with caching
   const progressQueries = useQueries({
@@ -153,7 +154,7 @@ export default function AnalyticsPage() {
     };
   }, [userProgress, weeklyPlans, allRecipeProgress]);
 
-  if (userLoading || plansLoading || isLoadingProgress) {
+  if (userLoading || plansLoading || progressLoading || isLoadingProgress) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-secondary/10">
         <div className="text-center">

@@ -111,7 +111,9 @@ export default function RecipeFeedbackForm({
               ? "Update your feedback for this recipe."
               : "Let us know how this recipe went for you!"}
           </DialogDescription>
-          <Label htmlFor="feedback-select">How was this recipe?</Label>
+          <Label htmlFor="feedback-select">
+            How was this recipe? <span className="text-red-500">*</span>
+          </Label>
           <Select
             value={feedback}
             onValueChange={(val) => {
