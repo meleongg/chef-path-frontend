@@ -107,11 +107,17 @@ export default function WeeklyPlanPage() {
 
   const getCurrentWeekPlan = (): WeeklyPlan | null => {
     if (!weeklyPlans) return null;
-    // Check if we have a freshly generated plan first
+    // Prefer cached plans when available to reflect swaps and other updates
+    const cachedPlan = weeklyPlans.find(
+      (plan) => plan.week_number === currentWeek
+    );
+    if (cachedPlan) return cachedPlan;
+
     if (generatedPlan && generatedPlan.week_number === currentWeek) {
       return convertToWeeklyPlan(generatedPlan);
     }
-    return weeklyPlans.find((plan) => plan.week_number === currentWeek) || null;
+
+    return null;
   };
 
   const currentPlan = getCurrentWeekPlan();
@@ -376,9 +382,6 @@ export default function WeeklyPlanPage() {
                         nextWeekPlanText
                       )}
                     </button>
-                    <p className="text-sm text-green-600">
-                      Use the chat widget to modify your plan if needed
-                    </p>
                   </div>
                 </div>
               )}
