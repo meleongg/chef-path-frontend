@@ -26,8 +26,8 @@ import {
   ArrowRightLeft,
   Check,
   PartyPopper,
-  RotateCcw,
   Rocket,
+  RotateCcw,
   UtensilsCrossed,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -135,20 +135,21 @@ export default function WeeklyPlanPage() {
 
   // Initialize currentWeek to the most recent week when data loads
   useEffect(() => {
-    if (weeklyPlans && weeklyPlans.length > 0) {
-      const mostRecentWeek = Math.max(
-        ...weeklyPlans.map((plan) => plan.week_number)
-      );
-      // Update to most recent week if current week doesn't exist in available plans
-      // This handles initial load and when new weeks are generated
-      const currentWeekExists = weeklyPlans.some(
-        (plan) => plan.week_number === currentWeek
-      );
-      if (!currentWeekExists) {
-        dispatch({ type: "SET_CURRENT_WEEK", payload: mostRecentWeek });
-      }
+    if (!weeklyPlans || weeklyPlans.length === 0) return;
+
+    const availableWeeks = weeklyPlans.map((plan) => plan.week_number);
+    if (generatedPlan) {
+      availableWeeks.push(generatedPlan.week_number);
     }
-  }, [weeklyPlans, currentWeek, dispatch]);
+
+    const mostRecentWeek = Math.max(...availableWeeks);
+    // Update to most recent week if current week doesn't exist in available plans
+    // This handles initial load and avoids reverting after generating a new week
+    const currentWeekExists = availableWeeks.includes(currentWeek);
+    if (!currentWeekExists) {
+      dispatch({ type: "SET_CURRENT_WEEK", payload: mostRecentWeek });
+    }
+  }, [weeklyPlans, generatedPlan, currentWeek, dispatch]);
 
   const isLoading = userLoading || plansLoading || eligibilityLoading;
 
