@@ -15,7 +15,7 @@ import {
   useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
 import { api } from "@/lib/api";
-import { WeeklyPlanResponse } from "@/types";
+import { RecipeScheduleItem, WeeklyPlanResponse } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRightLeft,
@@ -40,7 +40,7 @@ export default function WeeklyPlanPage() {
   const [toggleError, setToggleError] = useState("");
 
   const { user, isLoading: userLoading } = useUser();
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const currentWeek = state.currentWeek;
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -69,6 +69,26 @@ export default function WeeklyPlanPage() {
       (p) => p.recipe_id === recipeId && p.week_number === weekNumber
     );
     return progress?.status === "completed" || false;
+  };
+
+  // Helper to get recipes sorted by order from recipe_schedule
+  const getSortedRecipes = (plan: WeeklyPlanResponse | null) => {
+    if (!plan) return [];
+
+    try {
+      const schedule: RecipeScheduleItem[] = JSON.parse(plan.recipe_schedule);
+      const sorted = [...plan.recipes].sort((a, b) => {
+        const orderA =
+          schedule.find((s) => s.recipe_id === a.id)?.order ?? Infinity;
+        const orderB =
+          schedule.find((s) => s.recipe_id === b.id)?.order ?? Infinity;
+        return orderA - orderB;
+      });
+      return sorted;
+    } catch {
+      // Fallback to original order if recipe_schedule is malformed
+      return plan.recipes;
+    }
   };
 
   const getCurrentWeekPlan = () => {
@@ -107,6 +127,9 @@ export default function WeeklyPlanPage() {
       const plan = await api.generateNextWeekPlan(user.id);
       setGeneratedPlan(plan);
 
+      // Update currentWeek to the newly generated week
+      dispatch({ type: "SET_CURRENT_WEEK", payload: plan.week_number });
+
       // Invalidate queries to refetch fresh data
       await queryClient.invalidateQueries({
         queryKey: queryKeys.weeklyPlans(user.id),
@@ -136,6 +159,9 @@ export default function WeeklyPlanPage() {
       const initialIntent = `Create a weekly meal plan for week ${nextWeek} for a user who prefers ${user.cuisine} cuisine, wants ${user.frequency} meals per week, is a ${user.skill_level} cook, and whose goal is ${user.user_goal}.`;
       const plan = await api.generateWeeklyPlan(user.id, initialIntent);
       setGeneratedPlan(plan);
+
+      // Update currentWeek to the newly generated week
+      dispatch({ type: "SET_CURRENT_WEEK", payload: plan.week_number });
 
       // Invalidate queries to refetch fresh data
       await queryClient.invalidateQueries({
@@ -183,6 +209,14 @@ export default function WeeklyPlanPage() {
         `✓ Swapped ${result.old_recipe.name} with ${result.new_recipe.name}`
       );
 
+      // Refetch weekly plans and recipe progress for instant UI update
+      await queryClient.refetchQueries({
+        queryKey: queryKeys.weeklyPlans(user.id),
+      });
+      await queryClient.refetchQueries({
+        queryKey: queryKeys.recipeProgress(user.id, currentPlan.week_number),
+      });
+
       // Close modal and reset state
       setSwapModalOpen(false);
       setSelectedRecipe(null);
@@ -209,6 +243,11 @@ export default function WeeklyPlanPage() {
 
       // Show success notification
       console.log("✓ Marked recipe as incomplete");
+
+      // Refetch recipe progress for instant UI update
+      await queryClient.refetchQueries({
+        queryKey: queryKeys.recipeProgress(user.id, weekNumber),
+      });
     } catch (err: any) {
       const errorMsg =
         err?.message ||
@@ -332,7 +371,7 @@ export default function WeeklyPlanPage() {
                 );
               })()}
               <div className="grid gap-6 md:grid-cols-2">
-                {currentPlan.recipes.map((recipe) => (
+                {getSortedRecipes(currentPlan).map((recipe) => (
                   <Link
                     key={recipe.id}
                     href={`/recipe/${recipe.id}?week=${currentPlan.week_number}`}

@@ -96,15 +96,22 @@ export interface UserProgress {
   completion_rate: number;
 }
 
+// Recipe Schedule for ordered recipe display
+export interface RecipeScheduleItem {
+  recipe_id: string;
+  order: number;
+}
+
 // Agent API Endpoints
 export interface WeeklyPlanResponse {
   id: string;
   user_id: string;
   week_number: number;
-  recipe_ids: string;
+  recipe_ids: string; // Deprecated: use recipe_schedule instead
+  recipe_schedule: string; // JSON string of ordered recipe schedule
   generated_at: string;
   is_unlocked: boolean;
-  recipes: Recipe[];
+  recipes: Recipe[]; // Already sorted by order via backend
 }
 export interface GeneralChatRequest {
   user_message: string;
