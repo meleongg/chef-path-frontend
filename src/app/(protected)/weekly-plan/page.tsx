@@ -403,6 +403,10 @@ export default function WeeklyPlanPage() {
                   )}
                 </div>
 
+                <p className="text-xs text-center text-muted-foreground">
+                  Recently cooked recipes won't appear for 2 weeks.
+                </p>
+
                 {/* Progress Bar */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm text-muted-foreground">

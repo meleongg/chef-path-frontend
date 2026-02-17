@@ -65,6 +65,11 @@ export default function SwapRecipeModal({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
+            <p className="text-xs text-blue-800">
+              Recently cooked recipes won't appear for 2 weeks.
+            </p>
+          </div>
           {/* Recipe Being Swapped */}
           <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
             <p className="text-sm text-muted-foreground">Current Recipe</p>
