@@ -22,7 +22,7 @@ type AppAction =
 
 // Initial State
 const initialState: AppState = {
-  currentWeek: 1,
+  currentWeek: 0, // 0 means not yet initialized, will be set to most recent week
   isChatOpen: false,
 };
 

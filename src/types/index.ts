@@ -70,7 +70,9 @@ export interface WeeklyPlan {
   id: string;
   user_id: string;
   week_number: number;
-  recipe_ids: string; // JSON string of recipe IDs array
+  recipe_schedule?: string; // JSON string of ordered recipe schedule
+  swap_count: number; // 0-3, current swaps used this week
+  excluded_recipe_ids: string; // JSON array of swapped-out recipe IDs
   is_unlocked: boolean;
   created_at: string;
   recipes: Recipe[]; // Populated in responses
@@ -107,8 +109,9 @@ export interface WeeklyPlanResponse {
   id: string;
   user_id: string;
   week_number: number;
-  recipe_ids: string; // Deprecated: use recipe_schedule instead
   recipe_schedule: string; // JSON string of ordered recipe schedule
+  swap_count: number; // 0-3, current swaps used this week
+  excluded_recipe_ids: string; // JSON array of swapped-out recipe IDs
   generated_at: string;
   is_unlocked: boolean;
   recipes: Recipe[]; // Already sorted by order via backend

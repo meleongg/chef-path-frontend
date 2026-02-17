@@ -15,7 +15,12 @@ import {
   useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
 import { api } from "@/lib/api";
-import { RecipeScheduleItem, WeeklyPlanResponse } from "@/types";
+import {
+  Recipe,
+  RecipeScheduleItem,
+  WeeklyPlan,
+  WeeklyPlanResponse,
+} from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRightLeft,
@@ -71,12 +76,21 @@ export default function WeeklyPlanPage() {
     return progress?.status === "completed" || false;
   };
 
+  // Helper to convert WeeklyPlanResponse to WeeklyPlan
+  const convertToWeeklyPlan = (response: WeeklyPlanResponse): WeeklyPlan => ({
+    ...response,
+    created_at: response.generated_at,
+    recipe_schedule: response.recipe_schedule,
+  });
+
   // Helper to get recipes sorted by order from recipe_schedule
-  const getSortedRecipes = (plan: WeeklyPlanResponse | null) => {
+  const getSortedRecipes = (plan: WeeklyPlan | null) => {
     if (!plan) return [];
 
     try {
-      const schedule: RecipeScheduleItem[] = JSON.parse(plan.recipe_schedule);
+      const schedule: RecipeScheduleItem[] = plan.recipe_schedule
+        ? JSON.parse(plan.recipe_schedule)
+        : [];
       const sorted = [...plan.recipes].sort((a, b) => {
         const orderA =
           schedule.find((s) => s.recipe_id === a.id)?.order ?? Infinity;
@@ -91,12 +105,16 @@ export default function WeeklyPlanPage() {
     }
   };
 
-  const getCurrentWeekPlan = () => {
+  const getCurrentWeekPlan = (): WeeklyPlan | null => {
     if (!weeklyPlans) return null;
+    // Check if we have a freshly generated plan first
+    if (generatedPlan && generatedPlan.week_number === currentWeek) {
+      return convertToWeeklyPlan(generatedPlan);
+    }
     return weeklyPlans.find((plan) => plan.week_number === currentWeek) || null;
   };
 
-  const currentPlan = generatedPlan || getCurrentWeekPlan();
+  const currentPlan = getCurrentWeekPlan();
   const nextWeek =
     weeklyPlans && weeklyPlans.length > 0
       ? Math.max(...weeklyPlans.map((plan) => plan.week_number)) + 1
@@ -115,7 +133,44 @@ export default function WeeklyPlanPage() {
     }
   }, [user, userLoading, router]);
 
+  // Initialize currentWeek to the most recent week when data loads
+  useEffect(() => {
+    if (weeklyPlans && weeklyPlans.length > 0) {
+      const mostRecentWeek = Math.max(
+        ...weeklyPlans.map((plan) => plan.week_number)
+      );
+      // Update to most recent week if current week doesn't exist in available plans
+      // This handles initial load and when new weeks are generated
+      const currentWeekExists = weeklyPlans.some(
+        (plan) => plan.week_number === currentWeek
+      );
+      if (!currentWeekExists) {
+        dispatch({ type: "SET_CURRENT_WEEK", payload: mostRecentWeek });
+      }
+    }
+  }, [weeklyPlans, currentWeek, dispatch]);
+
   const isLoading = userLoading || plansLoading || eligibilityLoading;
+
+  // Pre-compute all dynamic values to avoid template literal nesting in JSX
+  const completedCount = currentPlan
+    ? currentPlan.recipes.filter((recipe) =>
+        isRecipeCompleted(recipe.id, currentPlan.week_number)
+      ).length
+    : 0;
+  const totalCount = currentPlan ? currentPlan.recipes.length : 0;
+  const progressPercentage =
+    totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+  const swapCount = currentPlan?.swap_count ?? 0;
+  const progressWidth = `${progressPercentage}%`;
+  const swapCounterClass =
+    swapCount >= 3 ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700";
+  const nextWeekPlanText = nextWeekEligibility
+    ? `Generate Week ${nextWeekEligibility.next_week} Plan`
+    : "Generate Next Week Plan";
+  const generatingText = nextWeekEligibility
+    ? `Generating Week ${nextWeekEligibility.next_week}...`
+    : "Generating...";
 
   const handleGenerateNextWeek = async () => {
     if (!user || !nextWeekEligibility?.can_generate) return;
@@ -209,14 +264,7 @@ export default function WeeklyPlanPage() {
         `✓ Swapped ${result.old_recipe.name} with ${result.new_recipe.name}`
       );
 
-      // Refetch weekly plans and recipe progress for instant UI update
-      await queryClient.refetchQueries({
-        queryKey: queryKeys.weeklyPlans(user.id),
-      });
-      await queryClient.refetchQueries({
-        queryKey: queryKeys.recipeProgress(user.id, currentPlan.week_number),
-      });
-
+      // Cache invalidation is handled by useSwapRecipeMutation's onSuccess
       // Close modal and reset state
       setSwapModalOpen(false);
       setSelectedRecipe(null);
@@ -224,7 +272,10 @@ export default function WeeklyPlanPage() {
       const errorMsg =
         err?.message === "Cannot swap a completed recipe"
           ? "Cannot swap a completed recipe"
-          : err?.message || "Failed to swap recipe. Please try again.";
+          : err?.message?.includes("Swap limit reached") ||
+              err?.message?.includes("3 swaps max")
+            ? "Swap limit reached for this week (3 swaps max). Swaps reset when you generate next week's plan!"
+            : err?.message || "Failed to swap recipe. Please try again.";
       setSwapError(errorMsg);
     }
   };
@@ -244,10 +295,7 @@ export default function WeeklyPlanPage() {
       // Show success notification
       console.log("✓ Marked recipe as incomplete");
 
-      // Refetch recipe progress for instant UI update
-      await queryClient.refetchQueries({
-        queryKey: queryKeys.recipeProgress(user.id, weekNumber),
-      });
+      // Cache invalidation is handled by useToggleRecipeStatusMutation's onSuccess
     } catch (err: any) {
       const errorMsg =
         err?.message ||
@@ -296,82 +344,90 @@ export default function WeeklyPlanPage() {
             </div>
           ) : currentPlan ? (
             <div className="py-4">
-              {(() => {
-                const completedCount = currentPlan.recipes.filter((recipe) =>
-                  isRecipeCompleted(recipe.id, currentPlan.week_number)
-                ).length;
-                const totalCount = currentPlan.recipes.length;
-                const progressPercentage =
-                  totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-
-                return (
-                  <>
-                    {/* Week Completion Banner */}
-                    {nextWeekEligibility?.can_generate && (
-                      <div className="mb-6 p-6 bg-gradient-to-r from-emerald-50 via-green-50 to-teal-50 border-2 border-green-500 rounded-xl shadow-lg">
-                        <div className="text-center space-y-4">
-                          <div className="flex justify-center">
-                            <PartyPopper className="w-12 h-12 text-green-600" />
-                          </div>
-                          <div>
-                            <h3 className="text-xl font-bold text-green-800 mb-2">
-                              Congratulations! Week {currentPlan.week_number}{" "}
-                              Complete!
-                            </h3>
-                            <p className="text-green-700 mb-4">
-                              You've finished all recipes this week. Ready to
-                              continue your culinary journey?
-                            </p>
-                          </div>
-                          <button
-                            onClick={handleGenerateNextWeek}
-                            disabled={isGenerating}
-                            className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-60 transition-all transform hover:scale-105"
-                          >
-                            {isGenerating ? (
-                              <span className="flex items-center justify-center">
-                                <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></span>
-                                Generating Week {nextWeekEligibility.next_week}
-                                ...
-                              </span>
-                            ) : (
-                              `Generate Week ${nextWeekEligibility.next_week} Plan`
-                            )}
-                          </button>
-                          <p className="text-sm text-green-600">
-                            Use the chat widget to modify your plan if needed
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="mb-6 space-y-3">
-                      <div className="text-center text-lg font-semibold text-primary">
-                        Week {currentPlan.week_number}: {totalCount} recipes
-                        planned
-                      </div>
-
-                      {/* Progress Bar */}
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm text-muted-foreground">
-                          <span>
-                            {completedCount} of {totalCount} completed
-                          </span>
-                          <span>{Math.round(progressPercentage)}%</span>
-                        </div>
-                        <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
-                            style={{ width: `${progressPercentage}%` }}
-                          />
-                        </div>
-                      </div>
+              {/* Week Completion Banner */}
+              {nextWeekEligibility?.can_generate && (
+                <div className="mb-6 p-6 bg-gradient-to-r from-emerald-50 via-green-50 to-teal-50 border-2 border-green-500 rounded-xl shadow-lg">
+                  <div className="text-center space-y-4">
+                    <div className="flex justify-center">
+                      <PartyPopper className="w-12 h-12 text-green-600" />
                     </div>
-                  </>
-                );
-              })()}
+                    <div>
+                      <h3 className="text-xl font-bold text-green-800 mb-2">
+                        Congratulations! Week {currentPlan.week_number}{" "}
+                        Complete!
+                      </h3>
+                      <p className="text-green-700 mb-4">
+                        You've finished all recipes this week. Ready to continue
+                        your culinary journey?
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleGenerateNextWeek}
+                      disabled={isGenerating}
+                      className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-60 transition-all transform hover:scale-105"
+                    >
+                      {isGenerating ? (
+                        <span className="flex items-center justify-center">
+                          <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></span>
+                          {generatingText}
+                        </span>
+                      ) : (
+                        nextWeekPlanText
+                      )}
+                    </button>
+                    <p className="text-sm text-green-600">
+                      Use the chat widget to modify your plan if needed
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Recipe Statistics & Progress */}
+              <div className="mb-6 space-y-3">
+                <div className="text-center text-lg font-semibold text-primary">
+                  Week {currentPlan.week_number}: {totalCount} recipes planned
+                </div>
+
+                {/* Swap Counter */}
+                <div className="flex items-center justify-center gap-2 text-sm">
+                  <span
+                    className={`px-3 py-1 rounded-full font-medium ${swapCounterClass}`}
+                  >
+                    {swapCount}/3 swaps used
+                  </span>
+                  {swapCount >= 3 && (
+                    <span className="text-xs text-muted-foreground">
+                      (Resets next week)
+                    </span>
+                  )}
+                </div>
+
+                {/* Progress Bar */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>
+                      {completedCount} of {totalCount} completed
+                    </span>
+                    <span>{Math.round(progressPercentage)}%</span>
+                  </div>
+                  <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
+                      style={{ width: progressWidth }}
+                    />
+                  </div>
+                </div>
+
+                {swapCount === 0 && (
+                  <div className="text-xs text-center text-muted-foreground">
+                    You can swap up to 3 recipes per week to customize your plan
+                  </div>
+                )}
+              </div>
+
+              {/* Recipe Cards Grid */}
               <div className="grid gap-6 md:grid-cols-2">
-                {getSortedRecipes(currentPlan).map((recipe) => (
+                {getSortedRecipes(currentPlan).map((recipe: Recipe) => (
                   <Link
                     key={recipe.id}
                     href={`/recipe/${recipe.id}?week=${currentPlan.week_number}`}
@@ -426,26 +482,32 @@ export default function WeeklyPlanPage() {
                                 recipe.id,
                                 currentPlan.week_number
                               );
-                              if (!isCompleted) {
+                              const swapLimitReached =
+                                currentPlan.swap_count >= 3;
+                              if (!isCompleted && !swapLimitReached) {
                                 handleSwapClick(recipe);
                               }
                             }}
-                            disabled={isRecipeCompleted(
-                              recipe.id,
-                              currentPlan.week_number
-                            )}
+                            disabled={
+                              isRecipeCompleted(
+                                recipe.id,
+                                currentPlan.week_number
+                              ) || currentPlan.swap_count >= 3
+                            }
                             title={
                               isRecipeCompleted(
                                 recipe.id,
                                 currentPlan.week_number
                               )
                                 ? "Cannot swap completed recipes"
-                                : "Swap this recipe"
+                                : currentPlan.swap_count >= 3
+                                  ? "Swap limit reached (3/3 swaps used)"
+                                  : "Swap this recipe"
                             }
                             className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-[hsl(var(--paprika))] hover:bg-amber-100/60 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                           >
                             <ArrowRightLeft className="w-4 h-4" />
-                            Swap
+                            Swap {swapCount >= 3 && "(Limit Reached)"}
                           </button>
 
                           {/* Mark as Incomplete Button */}
