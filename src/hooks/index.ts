@@ -133,6 +133,10 @@ export function useFormValidation() {
       newErrors.skill_level = "Please select your skill level";
     }
 
+    if (!data.user_goal) {
+      newErrors.user_goal = "Please select your cooking goal";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

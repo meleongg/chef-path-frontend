@@ -29,7 +29,7 @@ import {
 import { useFormValidation, useUser } from "@/hooks";
 import { UserProfileRequest } from "@/types";
 import { useRouter } from "next/navigation";
-import { useTransition, useState } from "react";
+import { useState, useTransition } from "react";
 import { toast, Toaster } from "sonner";
 
 export default function OnboardingPage() {
@@ -54,7 +54,6 @@ export default function OnboardingPage() {
     useState<string[]>([]);
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
-  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const {
     cuisine,
@@ -101,25 +100,32 @@ export default function OnboardingPage() {
       return;
     }
 
-    try {
-      const user = await updateUserProfile(submissionData);
-      if (user) {
-        setHasSubmitted(true);
-        toast.success("Welcome to ChefPath!", {
-          description: "Your cooking journey starts now!",
-        });
-        startTransition(() => {
+    startTransition(async () => {
+      try {
+        const user = await updateUserProfile(submissionData);
+        if (user) {
+          toast.success("Welcome to ChefPath!", {
+            description: "Your cooking journey starts now!",
+          });
           router.push("/weekly-plan");
+        } else {
+          console.error("updateUserProfile returned falsy value:", user);
+          toast.error("Account Creation Failed", {
+            description:
+              "Unable to complete your profile setup. Please try again.",
+            duration: 6000,
+          });
+        }
+      } catch (err) {
+        console.error("updateUserProfile error:", err);
+        toast.error("Account Creation Failed", {
+          description:
+            error ||
+            "Unable to create your account. Please check your connection and try again.",
+          duration: 6000,
         });
       }
-    } catch (err) {
-      toast.error("Account Creation Failed", {
-        description:
-          error ||
-          "Unable to create your account. Please check your connection and try again.",
-        duration: 6000,
-      });
-    }
+    });
   };
 
   const updateFormData = (
@@ -149,8 +155,8 @@ export default function OnboardingPage() {
     <>
       <Toaster position="top-center" expand={true} richColors />
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/10 flex items-center justify-center p-4 transition-opacity duration-300">
-        {!hasSubmitted && !isPending && (
-          <Card className="w-full max-w-2xl card-recipe shadow-cozy overflow-visible animate-in fade-in duration-300">
+        {!isPending && (
+          <Card className="w-full max-w-2xl card-recipe shadow-cozy overflow-visible animate-in fade-in duration-300 px-4 md:px-0">
             <CardHeader className="text-center space-y-4">
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
                 <span className="text-3xl">🍽️</span>
@@ -186,9 +192,8 @@ export default function OnboardingPage() {
                       <SelectValue placeholder="Choose your favorite cuisine" />
                     </SelectTrigger>
                     <SelectContent
-                      position="popper"
-                      sideOffset={5}
-                      className="z-[9999] max-h-[200px] overflow-y-auto min-w-[var(--radix-select-trigger-width)] bg-background border border-border shadow-lg backdrop-blur-none"
+                      position="item-aligned"
+                      className="z-[9999] max-h-[200px] overflow-y-auto bg-background border border-border shadow-lg backdrop-blur-none"
                       style={{
                         backgroundColor: "hsl(var(--background))",
                         opacity: 1,
@@ -282,9 +287,8 @@ export default function OnboardingPage() {
                       <SelectValue placeholder="Select your skill level" />
                     </SelectTrigger>
                     <SelectContent
-                      position="popper"
-                      sideOffset={5}
-                      className="z-[9999] max-h-[200px] overflow-y-auto min-w-[var(--radix-select-trigger-width)] bg-background border border-border shadow-lg backdrop-blur-none"
+                      position="item-aligned"
+                      className="z-[9999] max-h-[200px] overflow-y-auto bg-background border border-border shadow-lg backdrop-blur-none"
                       style={{
                         backgroundColor: "hsl(var(--background))",
                         opacity: 1,
@@ -332,9 +336,8 @@ export default function OnboardingPage() {
                       <SelectValue placeholder="Select your cooking goal" />
                     </SelectTrigger>
                     <SelectContent
-                      position="popper"
-                      sideOffset={5}
-                      className="z-[9999] max-h-[200px] overflow-y-auto min-w-[var(--radix-select-trigger-width)] bg-background border border-border shadow-lg backdrop-blur-none"
+                      position="item-aligned"
+                      className="z-[9999] max-h-[200px] overflow-y-auto bg-background border border-border shadow-lg backdrop-blur-none"
                       style={{
                         backgroundColor: "hsl(var(--background))",
                         opacity: 1,
@@ -442,9 +445,8 @@ export default function OnboardingPage() {
                       <SelectValue placeholder="Select preferred portion size" />
                     </SelectTrigger>
                     <SelectContent
-                      position="popper"
-                      sideOffset={5}
-                      className="z-[9999] max-h-[200px] overflow-y-auto min-w-[var(--radix-select-trigger-width)] bg-background border border-border shadow-lg backdrop-blur-none"
+                      position="item-aligned"
+                      className="z-[9999] max-h-[200px] overflow-y-auto bg-background border border-border shadow-lg backdrop-blur-none"
                       style={{
                         backgroundColor: "hsl(var(--background))",
                         opacity: 1,
@@ -564,7 +566,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* Transition Overlay */}
-      {(hasSubmitted || isPending) && (
+      {isPending && (
         <div className="fixed inset-0 bg-gradient-to-br from-[hsl(var(--paprika))]/20 via-amber-50 to-[hsl(var(--turmeric))]/20 backdrop-blur-md flex items-center justify-center z-[9999] animate-in fade-in duration-500">
           <div className="text-center">
             <div className="animate-spin rounded-full h-24 w-24 border-b-2 border-primary mx-auto mb-4"></div>
