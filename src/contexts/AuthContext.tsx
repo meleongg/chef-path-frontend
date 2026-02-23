@@ -144,6 +144,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const userResponse = await fetch(
           `${API_BASE_URL}/user/${storedUserId}`,
           {
+            credentials: "include",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${data.access_token}`,
@@ -405,6 +406,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         const response = await fetch(`${API_BASE_URL}/user/profile`, {
           method: "PUT",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${getAccessToken()}`,
