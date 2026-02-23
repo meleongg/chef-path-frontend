@@ -18,8 +18,12 @@ export default function FloatingChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPulse, setShowPulse] = useState(false);
+  const [rateLimitUntil, setRateLimitUntil] = useState<number | null>(null);
   const { user } = useUser();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const rateLimitTimeoutRef = useRef<number | null>(null);
+
+  const isRateLimited = rateLimitUntil !== null && rateLimitUntil > Date.now();
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -29,6 +33,43 @@ export default function FloatingChat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    return () => {
+      if (rateLimitTimeoutRef.current !== null) {
+        window.clearTimeout(rateLimitTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const startRateLimitCooldown = (retryAfterSeconds: number) => {
+    const cooldownMs = Math.max(retryAfterSeconds, 1) * 1000;
+    const expiresAt = Date.now() + cooldownMs;
+
+    setRateLimitUntil(expiresAt);
+    setError("");
+
+    if (rateLimitTimeoutRef.current !== null) {
+      window.clearTimeout(rateLimitTimeoutRef.current);
+    }
+
+    rateLimitTimeoutRef.current = window.setTimeout(() => {
+      setRateLimitUntil(null);
+      rateLimitTimeoutRef.current = null;
+    }, cooldownMs);
+  };
+
+  const getRetryAfterSeconds = (err: any) => {
+    const retryAfterHeader = err?.response?.headers?.get?.("Retry-After");
+    if (!retryAfterHeader) return null;
+
+    const parsedSeconds = Number(retryAfterHeader);
+    if (Number.isFinite(parsedSeconds) && parsedSeconds > 0) {
+      return parsedSeconds;
+    }
+
+    return null;
+  };
 
   // Listen for first plan generation to show pulse animation
   useEffect(() => {
@@ -49,7 +90,7 @@ export default function FloatingChat() {
   }, [pathname]);
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || !user) return;
+    if (!inputMessage.trim() || !user || isRateLimited) return;
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -95,6 +136,23 @@ export default function FloatingChat() {
       // Add the message to chat
       setMessages((prev) => [...prev, aiMessage]);
     } catch (err: any) {
+      const status = err?.status ?? err?.response?.status;
+      if (status === 429) {
+        const retryAfterSeconds = getRetryAfterSeconds(err) ?? 10;
+        startRateLimitCooldown(retryAfterSeconds);
+
+        const rateLimitMessage: ChatMessage = {
+          id: `system-${Date.now()}`,
+          sender: "ai",
+          text: "You're sending messages too quickly. Please wait and try again.",
+          timestamp: new Date(),
+          type: "general",
+        };
+
+        setMessages((prev) => [...prev, rateLimitMessage]);
+        return;
+      }
+
       const errorMsg =
         err?.message || "Failed to get response. Please try again.";
       setError(errorMsg);
@@ -315,11 +373,16 @@ export default function FloatingChat() {
                 onKeyDown={handleKeyPress}
                 placeholder="Type your message... (Shift+Enter for new line)"
                 className="resize-none min-h-[80px]"
-                disabled={isLoading}
+                disabled={isLoading || isRateLimited}
               />
+              {isRateLimited && (
+                <p className="text-xs text-muted-foreground">
+                  Rate limited. Please try again shortly.
+                </p>
+              )}
               <Button
                 onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || isLoading}
+                disabled={!inputMessage.trim() || isLoading || isRateLimited}
                 className="w-full bg-gradient-to-r from-[hsl(var(--turmeric))] to-orange-500 hover:opacity-90 text-white font-semibold"
               >
                 {isLoading ? "Sending..." : "Send Message"}
