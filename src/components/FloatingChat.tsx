@@ -136,9 +136,18 @@ export default function FloatingChat() {
       // Add the message to chat
       setMessages((prev) => [...prev, aiMessage]);
     } catch (err: unknown) {
-      const error = err instanceof ApiError ? err : err instanceof Error ? err : new Error(String(err));
+      const error =
+        err instanceof ApiError
+          ? err
+          : err instanceof Error
+            ? err
+            : new Error(String(err));
       const apiError = err instanceof ApiError ? (err as ApiError) : null;
-      const status = apiError?.status ?? (err && typeof err === 'object' && 'response' in err ? (err as { response?: { status?: number } }).response?.status : undefined);
+      const status =
+        apiError?.status ??
+        (err && typeof err === "object" && "response" in err
+          ? (err as { response?: { status?: number } }).response?.status
+          : undefined);
       if (status === 429) {
         const retryAfterSeconds =
           error instanceof ApiError ? getRetryAfterSeconds(error) : null;

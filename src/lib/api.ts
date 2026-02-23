@@ -148,7 +148,7 @@ function createRetryFn(
       ...options.headers,
       ...getAuthHeaders(),
     };
-    return fetch(url, { ...options, headers });
+    return fetch(url, { ...options, headers, credentials: "include" });
   };
 }
 
@@ -160,6 +160,7 @@ export const api = {
     const url = `${PLAN_BASE_URL}/general/${userId}`;
     const options: RequestInit = {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -180,6 +181,7 @@ export const api = {
     const url = `${PLAN_BASE_URL}/adaptive_chat/${userId}`;
     const options: RequestInit = {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -200,6 +202,7 @@ export const api = {
     const url = `${PLAN_BASE_URL}/generate/${userId}`;
     const options: RequestInit = {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -216,6 +219,7 @@ export const api = {
   async checkNextWeekEligibility(userId: string): Promise<NextWeekEligibility> {
     const url = `${PLAN_BASE_URL}/can_generate_next_week/${userId}`;
     const options: RequestInit = {
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -232,6 +236,7 @@ export const api = {
     const url = `${PLAN_BASE_URL}/generate_next_week/${userId}`;
     const options: RequestInit = {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -251,6 +256,7 @@ export const api = {
     const url = `${PLAN_BASE_URL}/chat/${userId}`;
     const options: RequestInit = {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -271,6 +277,7 @@ export const api = {
     const url = `${PLAN_BASE_URL}/swap-recipe/${userId}`;
     const options: RequestInit = {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -293,6 +300,7 @@ export const api = {
     const url = `${API_BASE_URL}/progress/${userId}/recipe/${recipeId}/week/${weekNumber}`;
     const options: RequestInit = {
       method: "PATCH",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -311,6 +319,7 @@ export const api = {
     const url = `${API_BASE_URL}/user/profile`;
     const options: RequestInit = {
       method: "PUT",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -324,6 +333,7 @@ export const api = {
   async getUser(userId: string): Promise<User> {
     const url = `${API_BASE_URL}/user/${userId}`;
     const options: RequestInit = {
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -337,6 +347,7 @@ export const api = {
     const url = `${API_BASE_URL}/user/${userId}`;
     const options: RequestInit = {
       method: "PUT",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -355,6 +366,7 @@ export const api = {
     const url = `${API_BASE_URL}/users/${userId}/account`;
     const options: RequestInit = {
       method: "PUT",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -372,6 +384,7 @@ export const api = {
     const url = `${API_BASE_URL}/users/${userId}/password`;
     const options: RequestInit = {
       method: "PUT",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -389,6 +402,7 @@ export const api = {
     const url = `${API_BASE_URL}/users/${userId}`;
     const options: RequestInit = {
       method: "DELETE",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -404,6 +418,7 @@ export const api = {
   async getAllUsers(): Promise<User[]> {
     const url = `${API_BASE_URL}/users`;
     const options: RequestInit = {
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -417,6 +432,7 @@ export const api = {
   async getWeeklyPlan(userId: string, weekNumber: number): Promise<WeeklyPlan> {
     const url = `${API_BASE_URL}/weekly-plan?user_id=${userId}&week_number=${weekNumber}`;
     const options: RequestInit = {
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -429,6 +445,7 @@ export const api = {
   async getAllWeeklyPlans(userId: string): Promise<WeeklyPlan[]> {
     const url = `${API_BASE_URL}/weekly-plan/${userId}/all`;
     const options: RequestInit = {
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -442,6 +459,7 @@ export const api = {
   async getRecipe(recipeId: string): Promise<Recipe> {
     const url = `${API_BASE_URL}/recipe/${recipeId}`;
     const options: RequestInit = {
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -454,6 +472,7 @@ export const api = {
   async getRandomRecipes(count: number = 5): Promise<Recipe[]> {
     const url = `${API_BASE_URL}/recipes/random?count=${count}`;
     const options: RequestInit = {
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -472,6 +491,7 @@ export const api = {
     try {
       const url = `${API_BASE_URL}/progress/${userId}/recipe/${recipeId}/week/${weekNumber}`;
       const options: RequestInit = {
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           ...getAuthHeaders(),
@@ -496,6 +516,7 @@ export const api = {
     const url = `${API_BASE_URL}/feedback/${feedbackData.user_id}`;
     const options: RequestInit = {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -512,6 +533,7 @@ export const api = {
   async getUserProgress(userId: string): Promise<UserProgress> {
     const url = `${API_BASE_URL}/progress/${userId}`;
     const options: RequestInit = {
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
@@ -527,6 +549,7 @@ export const api = {
   ): Promise<UserRecipeProgress[]> {
     const url = `${API_BASE_URL}/progress/${userId}/week/${weekNumber}`;
     const options: RequestInit = {
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...getAuthHeaders(),

@@ -141,7 +141,9 @@ export default function SettingsPage() {
             : undefined,
       };
 
-      const updated = await updateUserProfile(submissionData as UserProfileRequest);
+      const updated = await updateUserProfile(
+        submissionData as UserProfileRequest
+      );
       if (!updated) {
         throw new Error("Failed to update profile");
       }
