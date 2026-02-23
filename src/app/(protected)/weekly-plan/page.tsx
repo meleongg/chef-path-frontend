@@ -266,11 +266,6 @@ export default function WeeklyPlanPage() {
         },
       });
 
-      // Show success notification
-      console.log(
-        `✓ Swapped ${result.old_recipe.name} with ${result.new_recipe.name}`
-      );
-
       // Cache invalidation is handled by useSwapRecipeMutation's onSuccess
       // Close modal and reset state
       setSwapModalOpen(false);
@@ -298,9 +293,6 @@ export default function WeeklyPlanPage() {
         weekNumber,
         request: { status: "not_started" },
       });
-
-      // Show success notification
-      console.log("✓ Marked recipe as incomplete");
 
       // Cache invalidation is handled by useToggleRecipeStatusMutation's onSuccess
     } catch (err: any) {

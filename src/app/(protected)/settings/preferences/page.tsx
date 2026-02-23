@@ -27,7 +27,7 @@ import {
   SKILL_LEVELS,
 } from "@/constants";
 import { useUser } from "@/hooks";
-import { api, parseHelpers } from "@/lib/api";
+import { parseHelpers } from "@/lib/api";
 import { UserProfileRequest } from "@/types";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -35,7 +35,7 @@ import { toast, Toaster } from "sonner";
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, isLoading: userLoading, loadUser } = useUser();
+  const { user, isLoading: userLoading, updateUserProfile } = useUser();
   const [isSaving, setIsSaving] = useState(false);
   const [isFormInitialized, setIsFormInitialized] = useState(false);
 
@@ -115,11 +115,6 @@ export default function SettingsPage() {
     }
   }, [user]);
 
-  // Debug formData changes
-  useEffect(() => {
-    console.log("formData updated:", formData);
-  }, [formData]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -146,14 +141,14 @@ export default function SettingsPage() {
             : undefined,
       };
 
-      await api.updateUser(user.id, submissionData);
+      const updated = await updateUserProfile(submissionData);
+      if (!updated) {
+        throw new Error("Failed to update profile");
+      }
 
       toast.success("Settings Updated! ✨", {
         description: "Your preferences have been saved successfully.",
       });
-
-      // Refresh user data from API and update context
-      await loadUser(user.id);
 
       // Optionally navigate back to weekly plan
       setTimeout(() => {
