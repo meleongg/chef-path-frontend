@@ -22,12 +22,9 @@ import {
   WeeklyPlanResponse,
 } from "@/types";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
-const AUTH_BASE_URL =
-  process.env.NEXT_PUBLIC_AUTH_BASE_URL || "http://localhost:8000/auth";
-const PLAN_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/plan";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const AUTH_BASE_URL = process.env.NEXT_PUBLIC_AUTH_BASE_URL;
+const PLAN_BASE_URL = process.env.NEXT_PUBLIC_PLAN_BASE_URL;
 
 class ApiError extends Error {
   public status: number;
