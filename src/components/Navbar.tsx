@@ -27,7 +27,7 @@ export default function Navbar({
   ];
 
   const handleLogout = async () => {
-    // Logout via AuthContext (clears refresh token cookie)
+    // Logout via AuthContext (clears refresh token from localStorage)
     await logout();
 
     // Reset app state
