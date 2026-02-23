@@ -186,10 +186,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setRefreshToken(data.refresh_token);
 
       // Restore cached user immediately for fast cross-tab experience
+      // But only if the user is fully onboarded (has all required fields)
       const cachedUser = getCachedUser();
-      if (cachedUser) {
+      const isFullyOnboarded =
+        cachedUser &&
+        cachedUser.frequency &&
+        cachedUser.cuisine &&
+        cachedUser.skill_level &&
+        cachedUser.user_goal;
+
+      if (isFullyOnboarded) {
         console.log(
-          "[AuthContext] Restoring cached user from localStorage for immediate auth"
+          "[AuthContext] Restoring fully onboarded cached user from localStorage for immediate auth"
         );
         setState({
           user: cachedUser,
@@ -310,7 +318,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
           console.log(
             "[AuthContext] Tokens set in another tab, syncing this tab"
           );
-          refreshSession();
+          // Call refreshSession within the callback to avoid stale closure issues
+          (async () => {
+            await refreshSession();
+          })();
         }
         // If user cache changed, restore it immediately
         else if (e.key === "chefpath_user") {
@@ -334,7 +345,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       window.addEventListener("storage", handleStorageChange);
       return () => window.removeEventListener("storage", handleStorageChange);
     }
-  }, [refreshSession]);
+  }, []);
 
   /**
    * Login user with credentials
