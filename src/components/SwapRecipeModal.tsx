@@ -25,7 +25,6 @@ interface SwapRecipeModalProps {
 export default function SwapRecipeModal({
   isOpen,
   recipeName,
-  recipeId,
   weekNumber,
   onClose,
   onConfirm,
@@ -39,7 +38,7 @@ export default function SwapRecipeModal({
     try {
       await onConfirm(swapContext);
       setSwapContext("");
-    } catch (error) {
+    } catch {
       // Error is handled by parent component
     }
   };
@@ -67,7 +66,7 @@ export default function SwapRecipeModal({
         <div className="space-y-4 py-4">
           <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
             <p className="text-xs text-blue-800">
-              Recently cooked recipes won't appear for 2 weeks.
+              Recently cooked recipes won&apos;t appear for 2 weeks.
             </p>
           </div>
           {/* Recipe Being Swapped */}
@@ -90,7 +89,7 @@ export default function SwapRecipeModal({
               Why do you want to swap this recipe?
             </label>
             <p className="text-xs text-muted-foreground">
-              Tell us what you'd prefer instead. This helps our AI find the
+              Tell us what you&apos;d prefer instead. This helps our AI find the
               perfect replacement.
             </p>
             <Textarea

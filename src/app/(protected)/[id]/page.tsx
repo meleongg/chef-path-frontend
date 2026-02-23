@@ -4,8 +4,7 @@ import RecipeFeedbackForm from "@/components/RecipeFeedbackForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useApp } from "@/contexts/AppContext";
-import { useUser } from "@/hooks";
+import Image from "next/image";
 import { useRecipeQuery } from "@/hooks/queries";
 import { parseHelpers } from "@/lib/api";
 import Link from "next/link";
@@ -16,28 +15,25 @@ export default function RecipeDetailPage() {
   const { id } = useParams();
   const recipeId = typeof id === "string" ? id : id?.[0];
   const { data: recipe, isLoading } = useRecipeQuery(recipeId);
-  const { user } = useUser();
-  const { state } = useApp();
-  const currentWeek = state.currentWeek;
   const [completed, setCompleted] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const feedbackSubmittedRef = useRef(false);
-
-  // TODO: Fetch recipe progress if needed
-  const weeklyRecipeProgress: any[] = [];
 
   // Recipe is automatically fetched by useRecipeQuery hook
   // No need for manual useEffect to fetch recipe
 
   // Check if this recipe is completed in weekly progress
   useEffect(() => {
-    if (recipe && weeklyRecipeProgress) {
+    if (recipe) {
+      // TODO: Fetch recipe progress if needed
+      const weeklyRecipeProgress: Array<{ recipe_id: string; status: string }> =
+        [];
       const progress = weeklyRecipeProgress.find(
         (p) => p.recipe_id === recipe.id && p.status === "completed"
       );
       setCompleted(!!progress);
     }
-  }, [recipe, weeklyRecipeProgress]);
+  }, [recipe]);
 
   // Listen for dialog close and set completed if feedback was submitted
   const handleDialogOpenChange = (open: boolean) => {
@@ -83,9 +79,11 @@ export default function RecipeDetailPage() {
         </CardHeader>
         <CardContent>
           {recipe.image_url && (
-            <img
+            <Image
               src={recipe.image_url}
               alt={recipe.name}
+              width={400}
+              height={224}
               className="w-full h-56 object-cover rounded mb-4"
             />
           )}

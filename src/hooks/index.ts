@@ -53,6 +53,7 @@ export function useUser() {
     register: auth.register,
     logout: auth.logout,
     updateUserProfile,
+    setUser: auth.setUser,
   };
 }
 

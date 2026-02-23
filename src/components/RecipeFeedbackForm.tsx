@@ -22,7 +22,7 @@ import { useEffect, useState } from "react";
 interface RecipeFeedbackFormProps {
   recipeId: string;
   weekNumber: number;
-  existingFeedback?: any;
+  existingFeedback?: { rating: number; feedback: string };
   onFeedbackSubmitted?: () => void;
 }
 

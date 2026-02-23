@@ -4,7 +4,8 @@ import RecipeFeedbackForm from "@/components/RecipeFeedbackForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useRecipeParser, useUser } from "@/hooks";
+import Image from "next/image";
+import { useUser } from "@/hooks";
 import { useRecipeQuery, useWeeklyRecipeProgressQuery } from "@/hooks/queries";
 import { parseHelpers } from "@/lib/api";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -20,7 +21,6 @@ export default function RecipePage({
   const weekNumber = parseInt(searchParams.get("week") || "1");
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const { user } = useUser();
-  const { getParsedRecipe } = useRecipeParser();
   const router = useRouter();
 
   // Fetch recipe using TanStack Query (automatic caching)
@@ -35,6 +35,14 @@ export default function RecipePage({
     (p) => p.recipe_id === resolvedParams.id
   );
   const hasFeedback = existingFeedback?.status === "completed";
+
+  // Map UserRecipeProgress to feedback form shape
+  const feedbackData = existingFeedback
+    ? {
+        rating: existingFeedback.satisfaction_rating || 0,
+        feedback: existingFeedback.feedback || "",
+      }
+    : undefined;
 
   if (isLoading || !recipe) {
     return (
@@ -97,9 +105,11 @@ export default function RecipePage({
           </CardHeader>
           <CardContent className="space-y-6">
             {recipe.image_url && (
-              <img
+              <Image
                 src={recipe.image_url}
                 alt={recipe.name}
+                width={800}
+                height={384}
                 className="w-full h-64 md:h-96 object-cover rounded-lg shadow-md"
               />
             )}
@@ -183,13 +193,8 @@ export default function RecipePage({
                 Ingredients
               </h3>
               <ul className="space-y-2">
-                {ingredients.map((ingredient: any, idx) => {
-                  const ingredientText =
-                    typeof ingredient === "string"
-                      ? ingredient
-                      : `${ingredient.measure || ""} ${
-                          ingredient.name || ""
-                        }`.trim();
+                {ingredients.map((ingredient: string, idx) => {
+                  const ingredientText = ingredient;
                   return (
                     <li
                       key={idx}
@@ -216,9 +221,7 @@ export default function RecipePage({
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[hsl(var(--paprika))]/20 text-primary font-semibold text-sm mr-3 mt-0.5 flex-shrink-0">
                       {idx + 1}
                     </span>
-                    <span className="flex-1 leading-relaxed">
-                      {typeof step === "string" ? step : step.text}
-                    </span>
+                    <span className="flex-1 leading-relaxed">{step}</span>
                   </li>
                 ))}
               </ol>
@@ -232,7 +235,7 @@ export default function RecipePage({
               <RecipeFeedbackForm
                 recipeId={recipe.id}
                 weekNumber={weekNumber}
-                existingFeedback={existingFeedback}
+                existingFeedback={feedbackData}
                 onFeedbackSubmitted={() => {
                   setShowFeedbackForm(false);
                   // Progress is now automatically updated via useFeedback hook

@@ -1,7 +1,12 @@
 "use client";
 
 import { api } from "@/lib/api";
-import { UserRecipeProgress } from "@/types";
+import {
+  SubmitFeedbackRequest,
+  SwapRecipeRequest,
+  UpdateRecipeStatusRequest,
+  UserRecipeProgress,
+} from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
@@ -114,9 +119,6 @@ export function useUpdateRecipeProgressMutation() {
 
   return useMutation({
     mutationFn: async ({
-      userId,
-      recipeId,
-      weekNumber,
       progress,
     }: {
       userId: string;
@@ -155,13 +157,8 @@ export function useCompleteWeekMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      userId,
-      weekNumber,
-    }: {
-      userId: string;
-      weekNumber: number;
-    }) => api.checkNextWeekEligibility(userId),
+    mutationFn: ({ userId }: { userId: string; weekNumber: number }) =>
+      api.checkNextWeekEligibility(userId),
     onSuccess: (_, variables) => {
       // Invalidate weekly plans to reflect the completion
       queryClient.invalidateQueries({
@@ -185,8 +182,9 @@ export function useSubmitFeedbackMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (feedbackData: any) => api.submitFeedback(feedbackData),
-    onSuccess: (_, variables: any) => {
+    mutationFn: (feedbackData: SubmitFeedbackRequest) =>
+      api.submitFeedback(feedbackData),
+    onSuccess: (_, variables: SubmitFeedbackRequest) => {
       // Invalidate recipe progress to show feedback was submitted
       if (variables.user_id && variables.week_number) {
         queryClient.invalidateQueries({
@@ -210,8 +208,13 @@ export function useSwapRecipeMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ userId, request }: { userId: string; request: any }) =>
-      api.swapRecipe(userId, request),
+    mutationFn: ({
+      userId,
+      request,
+    }: {
+      userId: string;
+      request: SwapRecipeRequest;
+    }) => api.swapRecipe(userId, request),
     onSuccess: (_, variables) => {
       // Invalidate all related queries to reflect the swap
       queryClient.invalidateQueries({
@@ -247,7 +250,7 @@ export function useToggleRecipeStatusMutation() {
       userId: string;
       recipeId: string;
       weekNumber: number;
-      request: any;
+      request: UpdateRecipeStatusRequest;
     }) => api.updateRecipeStatus(userId, recipeId, weekNumber, request),
     onSuccess: (_, variables) => {
       // Invalidate all related queries to reflect the status change

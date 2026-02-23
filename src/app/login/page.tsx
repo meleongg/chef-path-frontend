@@ -82,7 +82,9 @@ export default function LoginPage() {
           </form>
         </CardContent>
         <div className="text-center mt-4">
-          <span className="text-muted-foreground">Don't have an account?</span>
+          <span className="text-muted-foreground">
+            Don&apos;t have an account?
+          </span>
           <Button
             variant="link"
             className="ml-2 text-primary underline"

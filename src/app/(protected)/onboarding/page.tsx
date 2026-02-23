@@ -165,8 +165,9 @@ export default function OnboardingPage() {
                 Welcome to ChefPath!
               </CardTitle>
               <CardDescription className="text-lg text-muted-foreground">
-                Your personalized cooking journey starts here. Let's get to know
-                you better so we can create the perfect meal plan just for you!
+                Your personalized cooking journey starts here. Let&apos;s get to
+                know you better so we can create the perfect meal plan just for
+                you!
               </CardDescription>
             </CardHeader>
 
@@ -558,7 +559,9 @@ export default function OnboardingPage() {
               </form>
 
               <div className="text-center text-sm text-muted-foreground">
-                <p>✨ We'll create a personalized meal plan just for you!</p>
+                <p>
+                  ✨ We&apos;ll create a personalized meal plan just for you!
+                </p>
               </div>
             </CardContent>
           </Card>

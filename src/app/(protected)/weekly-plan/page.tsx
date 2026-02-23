@@ -2,6 +2,7 @@
 
 import SwapRecipeModal from "@/components/SwapRecipeModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Image from "next/image";
 import Link from "next/link";
 
 import { useApp } from "@/contexts/AppContext";
@@ -14,7 +15,7 @@ import {
   useWeeklyPlansQuery,
   useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import {
   Recipe,
   RecipeScheduleItem,
@@ -40,7 +41,10 @@ export default function WeeklyPlanPage() {
     null
   );
   const [swapModalOpen, setSwapModalOpen] = useState(false);
-  const [selectedRecipe, setSelectedRecipe] = useState<any | null>(null);
+  const [selectedRecipe, setSelectedRecipe] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [swapError, setSwapError] = useState("");
   const [toggleError, setToggleError] = useState("");
 
@@ -202,9 +206,15 @@ export default function WeeklyPlanPage() {
       await queryClient.invalidateQueries({
         queryKey: queryKeys.nextWeekEligibility(user.id),
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error =
+        err instanceof ApiError
+          ? err
+          : err instanceof Error
+            ? err
+            : new Error(String(err));
       setGenerateError(
-        err?.message || "Failed to generate next week plan. Please try again."
+        error.message || "Failed to generate next week plan. Please try again."
       );
     } finally {
       setIsGenerating(false);
@@ -238,16 +248,22 @@ export default function WeeklyPlanPage() {
 
       // Dispatch event to notify FloatingChat to show pulse animation
       window.dispatchEvent(new CustomEvent("firstPlanGenerated"));
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error =
+        err instanceof ApiError
+          ? err
+          : err instanceof Error
+            ? err
+            : new Error(String(err));
       setGenerateError(
-        err?.message || "Failed to generate weekly plan. Please try again."
+        error.message || "Failed to generate weekly plan. Please try again."
       );
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleSwapClick = (recipe: any) => {
+  const handleSwapClick = (recipe: Recipe) => {
     setSelectedRecipe(recipe);
     setSwapError("");
     setSwapModalOpen(true);
@@ -257,7 +273,7 @@ export default function WeeklyPlanPage() {
     if (!user || !selectedRecipe || !currentPlan) return;
 
     try {
-      const result = await swapMutation.mutateAsync({
+      await swapMutation.mutateAsync({
         userId: user.id,
         request: {
           recipe_id_to_replace: selectedRecipe.id,
@@ -270,14 +286,20 @@ export default function WeeklyPlanPage() {
       // Close modal and reset state
       setSwapModalOpen(false);
       setSelectedRecipe(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error =
+        err instanceof ApiError
+          ? err
+          : err instanceof Error
+            ? err
+            : new Error(String(err));
       const errorMsg =
-        err?.message === "Cannot swap a completed recipe"
+        error.message === "Cannot swap a completed recipe"
           ? "Cannot swap a completed recipe"
-          : err?.message?.includes("Swap limit reached") ||
-              err?.message?.includes("3 swaps max")
+          : error.message?.includes("Swap limit reached") ||
+              error.message?.includes("3 swaps max")
             ? "Swap limit reached for this week (3 swaps max). Swaps reset when you generate next week's plan!"
-            : err?.message || "Failed to swap recipe. Please try again.";
+            : error.message || "Failed to swap recipe. Please try again.";
       setSwapError(errorMsg);
     }
   };
@@ -295,9 +317,15 @@ export default function WeeklyPlanPage() {
       });
 
       // Cache invalidation is handled by useToggleRecipeStatusMutation's onSuccess
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error =
+        err instanceof ApiError
+          ? err
+          : err instanceof Error
+            ? err
+            : new Error(String(err));
       const errorMsg =
-        err?.message ||
+        error.message ||
         "Failed to mark recipe as incomplete. Please try again.";
       setToggleError(errorMsg);
     }
@@ -356,8 +384,8 @@ export default function WeeklyPlanPage() {
                         Complete!
                       </h3>
                       <p className="text-green-700 mb-4">
-                        You've finished all recipes this week. Ready to continue
-                        your culinary journey?
+                        You&apos;ve finished all recipes this week. Ready to
+                        continue your culinary journey?
                       </p>
                     </div>
                     <button
@@ -399,7 +427,7 @@ export default function WeeklyPlanPage() {
                 </div>
 
                 <p className="text-xs text-center text-muted-foreground">
-                  Recently cooked recipes won't appear for 2 weeks.
+                  Recently cooked recipes won&apos;t appear for 2 weeks.
                 </p>
 
                 {/* Progress Bar */}
@@ -448,9 +476,11 @@ export default function WeeklyPlanPage() {
                       {recipe.image_url ? (
                         <div className="w-full h-48 overflow-hidden flex-shrink-0 relative">
                           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10 group-hover:from-black/30 transition-all" />
-                          <img
+                          <Image
                             src={recipe.image_url}
                             alt={recipe.name}
+                            width={400}
+                            height={192}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                           />
                         </div>
@@ -549,7 +579,7 @@ export default function WeeklyPlanPage() {
                 <div className="mb-6">
                   <p className="text-lg text-muted-foreground mb-2">
                     {nextWeekEligibility?.message ||
-                      "You don't have a weekly meal plan yet."}
+                      "You don&apos;t have a weekly meal plan yet."}
                   </p>
                 </div>
                 <button

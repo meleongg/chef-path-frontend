@@ -21,11 +21,8 @@ export default function ProtectedLayout({
 
   // TanStack Query automatically fetches and caches data
   // These hooks will deduplicate requests if called from multiple components
-  const weeklyPlansQuery = useWeeklyPlansQuery(user?.id);
-  const recipeProgressQuery = useWeeklyRecipeProgressQuery(
-    user?.id,
-    currentWeek
-  );
+  useWeeklyPlansQuery(user?.id);
+  useWeeklyRecipeProgressQuery(user?.id, currentWeek);
 
   // Note: No manual loading needed!
   // Queries automatically fetch when enabled (user?.id exists)

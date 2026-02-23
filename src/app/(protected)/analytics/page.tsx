@@ -51,9 +51,10 @@ export default function AnalyticsPage() {
   // Use TanStack Query's useQueries to fetch all weeks' progress with caching
   const progressQueries = useQueries({
     queries: (weeklyPlans || []).map((plan) => ({
-      queryKey: queryKeys.recipeProgress(user?.id!, plan.week_number),
-      queryFn: () => api.getWeeklyRecipeProgress(user!.id, plan.week_number),
-      enabled: !!user,
+      queryKey: queryKeys.recipeProgress(user?.id ?? "", plan.week_number),
+      queryFn: () =>
+        api.getWeeklyRecipeProgress(user?.id ?? "", plan.week_number),
+      enabled: !!user?.id,
       staleTime: 1 * 60 * 1000, // 1 minute - matches other progress queries
     })),
   });
@@ -254,7 +255,9 @@ export default function AnalyticsPage() {
         <Card className="border-2 border-[hsl(var(--paprika))]/40 bg-white">
           <CardHeader className="pb-4">
             <CardTitle className="text-xl">Feedback Distribution</CardTitle>
-            <CardDescription>How you're finding the recipes</CardDescription>
+            <CardDescription>
+              How you&apos;re finding the recipes
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">

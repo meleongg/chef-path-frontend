@@ -122,7 +122,7 @@ export default function Home() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-lg">
-                          This Week's Plan
+                          This Week&apos;s Plan
                         </h3>
                         <p className="text-sm text-muted-foreground">
                           Beginner • Italian Cuisine
@@ -261,7 +261,7 @@ export default function Home() {
                     Ready to Start Cooking?
                   </h2>
                   <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                    Join thousands of home cooks who've transformed their
+                    Join thousands of home cooks who&apos;ve transformed their
                     kitchen skills with ChefPath
                   </p>
                 </div>

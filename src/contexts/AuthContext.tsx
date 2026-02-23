@@ -1,6 +1,11 @@
 "use client";
 
-import { LoginRequest, RegisterRequest, User } from "@/types";
+import {
+  LoginRequest,
+  RegisterRequest,
+  User,
+  UserProfileRequest,
+} from "@/types";
 import {
   createContext,
   ReactNode,
@@ -30,7 +35,7 @@ interface AuthContextValue extends AuthState {
   ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<boolean>;
-  updateUserProfile: (profileData: any) => Promise<User | null>;
+  updateUserProfile: (profileData: UserProfileRequest) => Promise<User | null>;
   setUser: (user: User | null) => void;
   clearError: () => void;
 }
@@ -221,7 +226,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
+          await response.text();
           setState((prev) => ({
             ...prev,
             isLoading: false,
@@ -296,7 +301,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
+          await response.text();
           setState((prev) => ({
             ...prev,
             isLoading: false,
@@ -392,12 +397,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
    * Update user profile
    */
   const updateUserProfile = useCallback(
-    async (profileData: any): Promise<User | null> => {
+    async (profileData: UserProfileRequest): Promise<User | null> => {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
       try {
-        const API_BASE_URL =
-          process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
         const response = await fetch(`${API_BASE_URL}/user/profile`, {
           method: "PUT",
@@ -413,7 +417,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setState((prev) => ({
             ...prev,
             isLoading: false,
-            error: "Failed to update profile",
+            error: errorText || "Failed to update profile",
           }));
           return null;
         }

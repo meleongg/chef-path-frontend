@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@/hooks";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { ChatMessage } from "@/types";
 import { MessageCircle, X } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -59,7 +59,7 @@ export default function FloatingChat() {
     }, cooldownMs);
   };
 
-  const getRetryAfterSeconds = (err: any) => {
+  const getRetryAfterSeconds = (err: ApiError) => {
     const retryAfterHeader = err?.response?.headers?.get?.("Retry-After");
     if (!retryAfterHeader) return null;
 
@@ -135,11 +135,14 @@ export default function FloatingChat() {
 
       // Add the message to chat
       setMessages((prev) => [...prev, aiMessage]);
-    } catch (err: any) {
-      const status = err?.status ?? err?.response?.status;
+    } catch (err: unknown) {
+      const error = err instanceof ApiError ? err : err instanceof Error ? err : new Error(String(err));
+      const apiError = err instanceof ApiError ? (err as ApiError) : null;
+      const status = apiError?.status ?? (err && typeof err === 'object' && 'response' in err ? (err as { response?: { status?: number } }).response?.status : undefined);
       if (status === 429) {
-        const retryAfterSeconds = getRetryAfterSeconds(err) ?? 10;
-        startRateLimitCooldown(retryAfterSeconds);
+        const retryAfterSeconds =
+          error instanceof ApiError ? getRetryAfterSeconds(error) : null;
+        startRateLimitCooldown(retryAfterSeconds ?? 10);
 
         const rateLimitMessage: ChatMessage = {
           id: `system-${Date.now()}`,
@@ -149,12 +152,13 @@ export default function FloatingChat() {
           type: "general",
         };
 
-        setMessages((prev) => [...prev, rateLimitMessage]);
+        setMessages((prev: ChatMessage[]) => [...prev, rateLimitMessage]);
         return;
       }
 
       const errorMsg =
-        err?.message || "Failed to get response. Please try again.";
+        (error instanceof Error ? error.message : String(error)) ||
+        "Failed to get response. Please try again.";
       setError(errorMsg);
 
       // Better UX: Keep the user message and restore it to input so they can retry
@@ -236,7 +240,7 @@ export default function FloatingChat() {
                 <div className="flex items-center justify-center h-full text-center">
                   <div className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-[hsl(var(--paprika))]/30">
                     <p className="text-lg font-medium mb-2">
-                      👋 I'm Mise, your ChefPath mentor!
+                      👋 I&apos;m Mise, your ChefPath mentor!
                     </p>
                     <p className="text-sm">
                       Ask me about recipes, cooking techniques, or your meal

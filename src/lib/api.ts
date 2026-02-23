@@ -4,6 +4,7 @@ import {
   ChangePasswordRequest,
   GeneralChatRequest,
   GeneralChatResponse,
+  InstructionStep,
   MessageResponse,
   NextWeekEligibility,
   Recipe,
@@ -484,7 +485,7 @@ export const api = {
         response,
         createRetryFn(url, options)
       );
-    } catch (err) {
+    } catch {
       return null; // Return null if not found
     }
   },
@@ -541,9 +542,24 @@ export const api = {
 
 // Helper functions for parsing JSON strings from API
 export const parseHelpers = {
-  parseRecipeIngredients(ingredientsJson: string): any[] {
+  parseRecipeIngredients(ingredientsJson: string): string[] {
     try {
-      return JSON.parse(ingredientsJson);
+      const parsed = JSON.parse(ingredientsJson);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+      return parsed.map((ingredient) => {
+        if (typeof ingredient === "string") {
+          return ingredient;
+        }
+        if (ingredient && typeof ingredient === "object") {
+          const name = "name" in ingredient ? String(ingredient.name) : "";
+          const measure =
+            "measure" in ingredient ? String(ingredient.measure) : "";
+          return `${measure} ${name}`.trim();
+        }
+        return String(ingredient ?? "");
+      });
     } catch (error) {
       console.error("Failed to parse ingredients:", error);
       return [];
@@ -565,16 +581,25 @@ export const parseHelpers = {
       return [];
     }
   },
-  parseRecipeInstructions(instructionsJson: string | any[]): any[] {
-    // If already an array, return it
+  parseRecipeInstructions(
+    instructionsJson: string | Array<string | InstructionStep>
+  ): string[] {
+    const normalizeSteps = (steps: Array<string | InstructionStep>) =>
+      steps.map((step) => (typeof step === "string" ? step : step.text));
+
     if (Array.isArray(instructionsJson)) {
-      return instructionsJson;
+      return normalizeSteps(instructionsJson);
     }
 
-    // If it's a string, parse it
     if (typeof instructionsJson === "string") {
       try {
-        return JSON.parse(instructionsJson);
+        const parsed = JSON.parse(instructionsJson) as Array<
+          string | InstructionStep
+        >;
+        if (!Array.isArray(parsed)) {
+          return [];
+        }
+        return normalizeSteps(parsed);
       } catch (error) {
         console.error("Failed to parse instructions:", error);
         return [];

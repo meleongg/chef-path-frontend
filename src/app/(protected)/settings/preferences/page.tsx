@@ -92,7 +92,7 @@ export default function SettingsPage() {
             user.dietary_restrictions
           );
           setSelectedDietaryRestrictions(parsed);
-        } catch (e) {
+        } catch {
           setSelectedDietaryRestrictions([]);
         }
       } else {
@@ -103,7 +103,7 @@ export default function SettingsPage() {
         try {
           const parsed = parseHelpers.parseRecipeTags(user.allergens);
           setSelectedAllergens(parsed);
-        } catch (e) {
+        } catch {
           setSelectedAllergens([]);
         }
       } else {
@@ -141,7 +141,7 @@ export default function SettingsPage() {
             : undefined,
       };
 
-      const updated = await updateUserProfile(submissionData);
+      const updated = await updateUserProfile(submissionData as UserProfileRequest);
       if (!updated) {
         throw new Error("Failed to update profile");
       }
@@ -154,10 +154,11 @@ export default function SettingsPage() {
       setTimeout(() => {
         router.push("/weekly-plan");
       }, 1000);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
       toast.error("Update Failed", {
         description:
-          err?.message || "Unable to save your settings. Please try again.",
+          error?.message || "Unable to save your settings. Please try again.",
         duration: 6000,
       });
     } finally {

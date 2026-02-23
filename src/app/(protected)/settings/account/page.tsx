@@ -12,13 +12,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useUser } from "@/hooks";
 import { api } from "@/lib/api";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
 
 export default function AccountSettingsPage() {
-  const router = useRouter();
-  const { user, isLoading: userLoading, loadUser } = useUser();
+  const { user, isLoading: userLoading, setUser } = useUser();
   const [isSaving, setIsSaving] = useState(false);
   const [isFormInitialized, setIsFormInitialized] = useState(false);
 
@@ -65,8 +63,8 @@ export default function AccountSettingsPage() {
         description: "Your account details have been updated successfully.",
       });
 
-      // Refresh user data
-      await loadUser(user.id);
+      // Sync updated user into auth context
+      setUser(updatedUser);
     } catch (error) {
       toast.error("Update Failed", {
         description:
