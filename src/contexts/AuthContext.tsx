@@ -345,7 +345,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       window.addEventListener("storage", handleStorageChange);
       return () => window.removeEventListener("storage", handleStorageChange);
     }
-  }, []);
+  }, [refreshSession]);
 
   /**
    * Login user with credentials
