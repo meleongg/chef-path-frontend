@@ -4,10 +4,14 @@ import RecipeFeedbackForm from "@/components/RecipeFeedbackForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import Image from "next/image";
+import { useApp } from "@/contexts/AppContext";
 import { useUser } from "@/hooks";
 import { useRecipeQuery, useWeeklyRecipeProgressQuery } from "@/hooks/queries";
 import { parseHelpers } from "@/lib/api";
+import { resolveRecipeWeek } from "@/lib/recipeWeek";
+import { ChefHat } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { use, useState } from "react";
 
@@ -18,7 +22,8 @@ export default function RecipePage({
 }) {
   const resolvedParams = use(params);
   const searchParams = useSearchParams();
-  const weekNumber = parseInt(searchParams.get("week") || "1");
+  const { state } = useApp();
+  const weekNumber = resolveRecipeWeek(searchParams, state.currentWeek);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const { user } = useUser();
   const router = useRouter();
@@ -35,12 +40,12 @@ export default function RecipePage({
     (p) => p.recipe_id === resolvedParams.id
   );
   const hasFeedback = existingFeedback?.status === "completed";
+  const isInProgress = existingFeedback?.status === "in_progress";
 
-  // Map UserRecipeProgress to feedback form shape
-  const feedbackData = existingFeedback
+  const feedbackData = existingFeedback?.feedback
     ? {
-        rating: existingFeedback.satisfaction_rating || 0,
-        feedback: existingFeedback.feedback || "",
+        feedback: existingFeedback.feedback,
+        notes: existingFeedback.notes,
       }
     : undefined;
 
@@ -70,11 +75,11 @@ export default function RecipePage({
     <div className="min-h-screen p-4 md:p-8 bg-gradient-to-br from-amber-50 via-orange-50 to-[hsl(var(--turmeric))]/30">
       <div className="max-w-4xl mx-auto">
         <Button
-          onClick={() => router.back()}
+          onClick={() => router.push("/weekly-plan")}
           variant="secondary"
           className="mb-4 font-semibold text-white bg-[hsl(var(--paprika))] border-none hover:bg-[hsl(var(--primary))]/90 transition-colors duration-200"
         >
-          ← Back
+          ← Back to weekly plan
         </Button>
 
         <Card className="shadow-2xl border-2 border-[hsl(var(--paprika))]/60 bg-white/95 backdrop-blur-sm">
@@ -148,6 +153,21 @@ export default function RecipePage({
                 </div>
               )}
             </div>
+
+            {user && !hasFeedback && (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  asChild
+                  size="lg"
+                  className="flex-1 h-14 text-lg font-semibold bg-[hsl(var(--paprika))] hover:bg-[hsl(var(--primary))]/90 text-white shadow-lg"
+                >
+                  <Link href={`/recipe/${recipe.id}/cook?week=${weekNumber}`}>
+                    <ChefHat className="w-5 h-5 mr-2" />
+                    {isInProgress ? "Resume Cooking" : "Start Cooking"}
+                  </Link>
+                </Button>
+              </div>
+            )}
 
             {(dietaryTags.length > 0 || allergens.length > 0) && (
               <div className="space-y-3">

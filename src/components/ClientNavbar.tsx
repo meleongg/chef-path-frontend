@@ -11,5 +11,8 @@ export default function ClientNavbar() {
   if (pathname === "/onboarding") {
     return <Navbar showMinimal />;
   }
+  if (pathname?.match(/\/recipe\/[^/]+\/cook$/)) {
+    return null;
+  }
   return <Navbar />;
 }

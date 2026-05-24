@@ -17,13 +17,21 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@/hooks";
 import { useSubmitFeedbackMutation } from "@/hooks/queries";
+import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
+
+export interface RecipeFeedbackExisting {
+  feedback: string;
+  notes?: string;
+}
 
 interface RecipeFeedbackFormProps {
   recipeId: string;
   weekNumber: number;
-  existingFeedback?: { rating: number; feedback: string };
+  existingFeedback?: RecipeFeedbackExisting;
   onFeedbackSubmitted?: () => void;
+  variant?: "dialog" | "inline";
+  className?: string;
 }
 
 export default function RecipeFeedbackForm({
@@ -31,6 +39,8 @@ export default function RecipeFeedbackForm({
   weekNumber,
   existingFeedback,
   onFeedbackSubmitted,
+  variant = "dialog",
+  className,
 }: RecipeFeedbackFormProps) {
   const { user } = useUser();
   const submitFeedbackMutation = useSubmitFeedbackMutation();
@@ -38,36 +48,36 @@ export default function RecipeFeedbackForm({
   const [feedbackSelectError, setFeedbackSelectError] = useState<string | null>(
     null
   );
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState(existingFeedback?.notes || "");
   const [success, setSuccess] = useState(false);
 
   const isSubmitting = submitFeedbackMutation.isPending;
   const feedbackError = submitFeedbackMutation.error?.message || null;
+  const isInline = variant === "inline";
+  const hasExisting = Boolean(existingFeedback?.feedback);
 
-  // Pre-fill form with existing feedback
   useEffect(() => {
     if (existingFeedback) {
       setFeedback(existingFeedback.feedback || "");
-      // You can add notes field to UserRecipeProgress if needed
+      setNotes(existingFeedback.notes || "");
     }
   }, [existingFeedback]);
 
   useEffect(() => {
-    if (success) {
+    if (success && !isInline) {
       const timer = setTimeout(() => {
         const closeBtn = document.querySelector('[data-slot="dialog-close"]');
         if (closeBtn) (closeBtn as HTMLElement).click();
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [success]);
+  }, [success, isInline]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSuccess(false);
     setFeedbackSelectError(null);
     if (!user) return;
-    // Input validation for feedback select
     if (!feedback) {
       setFeedbackSelectError(
         "Please select a feedback option before submitting."
@@ -81,36 +91,60 @@ export default function RecipeFeedbackForm({
         recipe_id: recipeId,
         week_number: weekNumber,
         feedback,
+        notes: notes.trim() || undefined,
       });
       setSuccess(true);
-      if (onFeedbackSubmitted) onFeedbackSubmitted();
+      onFeedbackSubmitted?.();
     } catch (err) {
-      // Error is handled by the mutation's error state
       console.error("Failed to submit feedback:", err);
     }
   };
 
+  const title = hasExisting ? "Update Recipe Feedback" : "How did it go?";
+  const description = hasExisting
+    ? "Update your feedback for this recipe."
+    : "Let us know how this recipe went for you!";
+
   return (
-    <div className="bg-white rounded-lg shadow p-8 flex flex-col gap-6 relative">
-      <DialogTitle className="mb-1">
-        {existingFeedback ? "Update Recipe Feedback" : "Recipe Feedback"}
-      </DialogTitle>
-      <DialogClose className="absolute top-6 right-6" />
+    <div
+      className={cn(
+        "flex flex-col gap-6 relative",
+        isInline
+          ? "bg-white/95 rounded-xl p-6 border-2 border-[hsl(var(--paprika))]/30"
+          : "bg-white rounded-lg shadow p-8",
+        className
+      )}
+    >
+      {isInline ? (
+        <>
+          <h2 className="text-2xl font-bold text-primary">{title}</h2>
+          <p className="text-muted-foreground text-sm -mt-4">{description}</p>
+        </>
+      ) : (
+        <>
+          <DialogTitle className="mb-1">{title}</DialogTitle>
+          <DialogClose className="absolute top-6 right-6" />
+        </>
+      )}
+
       {success ? (
         <div className="flex flex-col items-center justify-center py-12">
           <div className="text-green-600 font-medium text-lg">
-            {existingFeedback
+            {hasExisting
               ? "Feedback updated successfully!"
               : "Thank you for your feedback!"}
           </div>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <DialogDescription className="mb-4">
-            {existingFeedback
-              ? "Update your feedback for this recipe."
-              : "Let us know how this recipe went for you!"}
-          </DialogDescription>
+        <form
+          onSubmit={handleSubmit}
+          className={cn("space-y-4", isInline && "relative z-10")}
+        >
+          {!isInline && (
+            <DialogDescription className="mb-4">
+              {description}
+            </DialogDescription>
+          )}
           <Label htmlFor="feedback-select">
             How was this recipe? <span className="text-red-500">*</span>
           </Label>
@@ -124,36 +158,28 @@ export default function RecipeFeedbackForm({
           >
             <SelectTrigger
               id="feedback-select"
-              className={`h-12 text-base w-full ${
-                feedbackSelectError
-                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                  : ""
-              }`}
+              className={cn(
+                "h-12 text-base w-full",
+                feedbackSelectError &&
+                  "border-red-500 focus:border-red-500 focus:ring-red-500"
+              )}
               aria-invalid={!!feedbackSelectError}
             >
               <SelectValue placeholder="Select feedback" />
             </SelectTrigger>
             <SelectContent
               position="popper"
-              sideOffset={5}
-              className="z-[9999] max-h-[200px] overflow-y-auto min-w-[var(--radix-select-trigger-width)] bg-background border border-border shadow-lg backdrop-blur-none"
-              style={{ backgroundColor: "hsl(var(--background))", opacity: 1 }}
+              side="bottom"
+              sideOffset={4}
+              collisionPadding={8}
+              className={cn(
+                "z-[200] bg-white border border-border shadow-lg",
+                isInline && "w-[var(--radix-select-trigger-width)]"
+              )}
             >
-              <SelectItem
-                value="too_easy"
-                className="cursor-pointer border-b border-border/50"
-              >
-                Too Easy
-              </SelectItem>
-              <SelectItem
-                value="just_right"
-                className="cursor-pointer border-b border-border/50"
-              >
-                Just Right
-              </SelectItem>
-              <SelectItem value="too_hard" className="cursor-pointer">
-                Too Hard
-              </SelectItem>
+              <SelectItem value="too_easy">Too Easy</SelectItem>
+              <SelectItem value="just_right">Just Right</SelectItem>
+              <SelectItem value="too_hard">Too Hard</SelectItem>
             </SelectContent>
           </Select>
           {feedbackSelectError && (
@@ -167,12 +193,13 @@ export default function RecipeFeedbackForm({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
+            maxLength={2000}
             placeholder="Share any thoughts or suggestions..."
           />
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="bg-[hsl(var(--sage))] text-primary font-semibold border border-[hsl(var(--paprika))] shadow transition-colors duration-200 hover:bg-[hsl(var(--sage))]/40 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--paprika))]"
+            className="w-full h-12 text-base font-semibold bg-[hsl(var(--sage))] text-primary border border-[hsl(var(--paprika))] hover:bg-[hsl(var(--sage))]/40"
           >
             {isSubmitting ? "Submitting..." : "Submit Feedback"}
           </Button>

@@ -84,7 +84,8 @@ export interface UserRecipeProgress {
   recipe_id: string;
   week_number: number;
   status: string; // "not_started", "in_progress", "completed"
-  feedback: string; // "too_easy", "just_right", "too_hard"
+  feedback?: string; // "too_easy", "just_right", "too_hard"
+  notes?: string;
   satisfaction_rating?: number; // 1-5 stars, AI input field
   difficulty_rating?: number; // 1-5 difficulty, AI input field
   completed_at: string;
@@ -170,6 +171,7 @@ export interface SubmitFeedbackRequest {
   recipe_id: string;
   week_number: number;
   feedback: string; // "too_easy", "just_right", "too_hard"
+  notes?: string;
 }
 
 export interface SubmitFeedbackResponse {
@@ -236,7 +238,7 @@ export interface SwapRecipeResponse {
 }
 
 export interface UpdateRecipeStatusRequest {
-  status: "not_started" | "completed";
+  status: "not_started" | "in_progress" | "completed";
 }
 
 export interface UpdateRecipeStatusResponse {

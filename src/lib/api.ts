@@ -602,11 +602,31 @@ export const parseHelpers = {
   parseRecipeInstructions(
     instructionsJson: string | Array<string | InstructionStep>
   ): string[] {
-    const normalizeSteps = (steps: Array<string | InstructionStep>) =>
-      steps.map((step) => (typeof step === "string" ? step : step.text));
+    return parseHelpers
+      .parseRecipeInstructionsStructured(instructionsJson)
+      .map((s) => s.text);
+  },
+
+  parseRecipeInstructionsStructured(
+    instructionsJson: string | Array<string | InstructionStep>
+  ): InstructionStep[] {
+    const toSteps = (
+      items: Array<string | InstructionStep>
+    ): InstructionStep[] => {
+      return items.map((item, index) => {
+        if (typeof item === "string") {
+          const stripped = item.replace(/^\s*\d+[\.\)]\s*/, "").trim();
+          return { step: index + 1, text: stripped || item };
+        }
+        return {
+          step: item.step > 0 ? item.step : index + 1,
+          text: item.text,
+        };
+      });
+    };
 
     if (Array.isArray(instructionsJson)) {
-      return normalizeSteps(instructionsJson);
+      return toSteps(instructionsJson);
     }
 
     if (typeof instructionsJson === "string") {
@@ -614,14 +634,20 @@ export const parseHelpers = {
         const parsed = JSON.parse(instructionsJson) as Array<
           string | InstructionStep
         >;
-        if (!Array.isArray(parsed)) {
-          return [];
+        if (Array.isArray(parsed)) {
+          return toSteps(parsed);
         }
-        return normalizeSteps(parsed);
-      } catch (error) {
-        console.error("Failed to parse instructions:", error);
-        return [];
+      } catch {
+        // Fall through: treat as newline-separated plain text
       }
+      return instructionsJson
+        .split(/\n+/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line, index) => ({
+          step: index + 1,
+          text: line.replace(/^\s*\d+[\.\)]\s*/, "").trim() || line,
+        }));
     }
 
     return [];

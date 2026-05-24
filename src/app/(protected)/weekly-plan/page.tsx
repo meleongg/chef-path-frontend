@@ -16,6 +16,7 @@ import {
   useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
 import { api, ApiError } from "@/lib/api";
+import { clearKitchenSession } from "@/lib/kitchenSessionStorage";
 import {
   Recipe,
   RecipeScheduleItem,
@@ -26,6 +27,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRightLeft,
   Check,
+  ChefHat,
   PartyPopper,
   Rocket,
   RotateCcw,
@@ -72,12 +74,22 @@ export default function WeeklyPlanPage() {
     useNextWeekEligibilityQuery(user?.id);
 
   // Helper to check if recipe is completed
-  const isRecipeCompleted = (recipeId: string, weekNumber: number): boolean => {
-    if (!recipeProgress) return false;
-    const progress = recipeProgress.find(
+  const getRecipeProgress = (recipeId: string, weekNumber: number) => {
+    if (!recipeProgress) return undefined;
+    return recipeProgress.find(
       (p) => p.recipe_id === recipeId && p.week_number === weekNumber
     );
-    return progress?.status === "completed" || false;
+  };
+
+  const isRecipeCompleted = (recipeId: string, weekNumber: number): boolean => {
+    return getRecipeProgress(recipeId, weekNumber)?.status === "completed";
+  };
+
+  const isRecipeInProgress = (
+    recipeId: string,
+    weekNumber: number
+  ): boolean => {
+    return getRecipeProgress(recipeId, weekNumber)?.status === "in_progress";
   };
 
   // Helper to convert WeeklyPlanResponse to WeeklyPlan
@@ -282,6 +294,8 @@ export default function WeeklyPlanPage() {
         },
       });
 
+      clearKitchenSession(selectedRecipe.id, currentPlan.week_number);
+
       // Cache invalidation is handled by useSwapRecipeMutation's onSuccess
       // Close modal and reset state
       setSwapModalOpen(false);
@@ -456,25 +470,38 @@ export default function WeeklyPlanPage() {
               {/* Recipe Cards Grid */}
               <div className="grid gap-6 md:grid-cols-2">
                 {getSortedRecipes(currentPlan).map((recipe: Recipe) => (
-                  <Link
-                    key={recipe.id}
-                    href={`/recipe/${recipe.id}?week=${currentPlan.week_number}`}
-                    className="block group"
-                  >
-                    <Card className="overflow-hidden group-hover:shadow-2xl group-hover:border-[hsl(var(--paprika))]/60 transition-all duration-300 h-full flex flex-col relative border-2 border-gray-200">
+                    <Card
+                      key={recipe.id}
+                      className="overflow-hidden group hover:shadow-2xl hover:border-[hsl(var(--paprika))]/60 transition-all duration-300 h-full flex flex-col relative border-2 border-gray-200"
+                    >
+                      <Link
+                        href={`/recipe/${recipe.id}?week=${currentPlan.week_number}`}
+                        className="absolute inset-0 z-[1] rounded-[inherit]"
+                        aria-label={`View ${recipe.name}`}
+                      />
                       {/* Completion Badge */}
                       {isRecipeCompleted(
                         recipe.id,
                         currentPlan.week_number
                       ) && (
-                        <div className="absolute top-3 right-3 z-10 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1.5">
+                        <div className="absolute top-3 right-3 z-[2] pointer-events-none bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1.5">
                           <Check className="w-3 h-3" />
                           <span>Completed</span>
                         </div>
                       )}
+                      {isRecipeInProgress(recipe.id, currentPlan.week_number) &&
+                        !isRecipeCompleted(
+                          recipe.id,
+                          currentPlan.week_number
+                        ) && (
+                          <div className="absolute top-3 right-3 z-[2] pointer-events-none bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1.5">
+                            <ChefHat className="w-3 h-3" />
+                            <span>In progress</span>
+                          </div>
+                        )}
 
                       {recipe.image_url ? (
-                        <div className="w-full h-48 overflow-hidden flex-shrink-0 relative">
+                        <div className="w-full h-48 overflow-hidden flex-shrink-0 relative pointer-events-none">
                           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10 group-hover:from-black/30 transition-all" />
                           <Image
                             src={recipe.image_url}
@@ -485,7 +512,7 @@ export default function WeeklyPlanPage() {
                           />
                         </div>
                       ) : (
-                        <div className="w-full h-48 flex-shrink-0 bg-gradient-to-br from-amber-100/80 via-orange-100/80 to-[hsl(var(--turmeric))]/40 flex items-center justify-center group-hover:from-amber-200/80 group-hover:via-orange-200/80 transition-all duration-300">
+                        <div className="w-full h-48 flex-shrink-0 pointer-events-none bg-gradient-to-br from-amber-100/80 via-orange-100/80 to-[hsl(var(--turmeric))]/40 flex items-center justify-center group-hover:from-amber-200/80 group-hover:via-orange-200/80 transition-all duration-300">
                           <div className="text-center px-4">
                             <UtensilsCrossed className="w-16 h-16 mx-auto mb-2 text-[hsl(var(--paprika))] group-hover:scale-110 transition-transform" />
                             <p className="text-sm font-semibold text-[hsl(var(--paprika))]">
@@ -494,7 +521,7 @@ export default function WeeklyPlanPage() {
                           </div>
                         </div>
                       )}
-                      <CardContent className="p-4 flex-1 flex flex-col">
+                      <CardContent className="relative z-[2] p-4 flex-1 flex flex-col pointer-events-none">
                         <div className="font-bold text-lg text-primary mb-1 group-hover:underline line-clamp-2">
                           {recipe.name}
                         </div>
@@ -502,11 +529,27 @@ export default function WeeklyPlanPage() {
                           {recipe.cuisine}
                         </div>
 
+                        {isRecipeInProgress(
+                          recipe.id,
+                          currentPlan.week_number
+                        ) &&
+                          !isRecipeCompleted(
+                            recipe.id,
+                            currentPlan.week_number
+                          ) && (
+                            <Link
+                              href={`/recipe/${recipe.id}/cook?week=${currentPlan.week_number}`}
+                              className="pointer-events-auto mb-3 flex items-center justify-center gap-2 w-full px-3 py-2.5 text-sm font-semibold rounded-lg bg-[hsl(var(--paprika))] text-white hover:bg-[hsl(var(--primary))]/90 transition-colors"
+                            >
+                              <ChefHat className="w-4 h-4" />
+                              Resume cooking
+                            </Link>
+                          )}
+
                         {/* Swap Button */}
-                        <div className="mt-auto pt-4 border-t border-gray-200">
+                        <div className="mt-auto pt-4 border-t border-gray-200 pointer-events-auto">
                           <button
                             onClick={(e) => {
-                              e.preventDefault();
                               e.stopPropagation();
                               const isCompleted = isRecipeCompleted(
                                 recipe.id,
@@ -547,7 +590,6 @@ export default function WeeklyPlanPage() {
                           ) && (
                             <button
                               onClick={(e) => {
-                                e.preventDefault();
                                 e.stopPropagation();
                                 handleMarkIncomplete(
                                   recipe.id,
@@ -567,7 +609,6 @@ export default function WeeklyPlanPage() {
                         </div>
                       </CardContent>
                     </Card>
-                  </Link>
                 ))}
               </div>
             </div>
