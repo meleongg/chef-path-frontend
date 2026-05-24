@@ -12,6 +12,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useUser } from "@/hooks";
 import { api } from "@/lib/api";
+import {
+  setAccessToken,
+  setCachedUser,
+  setRefreshToken,
+} from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { toast, Toaster } from "sonner";
 
@@ -154,7 +159,9 @@ export default function AccountSettingsPage() {
       });
 
       // Clear local storage and redirect to home
-      localStorage.removeItem("chefpath_token");
+      setAccessToken(null);
+      setRefreshToken(null);
+      setCachedUser(null);
       localStorage.removeItem("chefpath_user_id");
       window.location.href = "/";
     } catch (error) {

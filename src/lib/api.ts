@@ -1,4 +1,9 @@
-import { getAccessToken, setAccessToken } from "@/contexts/AuthContext";
+import {
+  getAccessToken,
+  getRefreshToken,
+  setAccessToken,
+  setRefreshToken,
+} from "@/contexts/AuthContext";
 import {
   AdaptiveChatResponse,
   ChangePasswordRequest,
@@ -68,16 +73,28 @@ async function refreshAccessToken(): Promise<boolean> {
 
   refreshPromise = (async () => {
     try {
+      const refreshToken = getRefreshToken();
+      if (!refreshToken) {
+        setAccessToken(null);
+        setRefreshToken(null);
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
+        return false;
+      }
+
       const response = await fetch(`${AUTH_BASE_URL}/refresh`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${refreshToken}`,
         },
       });
 
       if (!response.ok) {
         // Refresh failed - session expired
         setAccessToken(null);
+        setRefreshToken(null);
         // Redirect to login
         if (typeof window !== "undefined") {
           window.location.href = "/login";
@@ -87,10 +104,12 @@ async function refreshAccessToken(): Promise<boolean> {
 
       const data = await response.json();
       setAccessToken(data.access_token);
+      setRefreshToken(data.refresh_token);
       return true;
     } catch (error) {
       console.error("Token refresh failed:", error);
       setAccessToken(null);
+      setRefreshToken(null);
       if (typeof window !== "undefined") {
         window.location.href = "/login";
       }
