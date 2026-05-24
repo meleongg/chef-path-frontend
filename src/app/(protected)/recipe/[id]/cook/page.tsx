@@ -20,11 +20,12 @@ import {
   useToggleRecipeStatusMutation,
   useWeeklyRecipeProgressQuery,
 } from "@/hooks/queries";
+import { useCookExitGuard } from "@/hooks/useCookExitGuard";
 import { useKitchenSession } from "@/hooks/useKitchenSession";
 import { parseHelpers } from "@/lib/api";
 import { resolveRecipeWeek } from "@/lib/recipeWeek";
 import { useRouter, useSearchParams } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 
 type CookPhase = "cooking" | "feedback";
 
@@ -46,9 +47,16 @@ export default function KitchenCookPage({
   const updateStatusMutation = useToggleRecipeStatusMutation();
 
   const { data: recipe, isLoading } = useRecipeQuery(recipeId);
-  const { data: recipeProgress } = useWeeklyRecipeProgressQuery(
-    user?.id,
-    weekNumber
+  const { data: recipeProgress, isSuccess: progressLoaded } =
+    useWeeklyRecipeProgressQuery(user?.id, weekNumber);
+
+  const handleBackAttempt = useCallback(() => {
+    setShowExitDialog(true);
+  }, []);
+
+  const { allowExit } = useCookExitGuard(
+    phase === "cooking",
+    handleBackAttempt
   );
 
   const ingredients = recipe
@@ -73,7 +81,7 @@ export default function KitchenCookPage({
     : undefined;
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || !progressLoaded) return;
     const status = progressEntry?.status;
     if (status === "completed") {
       router.replace(`/recipe/${recipeId}?week=${weekNumber}`);
@@ -87,10 +95,11 @@ export default function KitchenCookPage({
       request: { status: "in_progress" },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mutate once when status is known
-  }, [user?.id, recipeId, weekNumber, progressEntry?.status]);
+  }, [user?.id, recipeId, weekNumber, progressLoaded, progressEntry?.status]);
 
   const confirmExit = () => {
     setShowExitDialog(false);
+    allowExit();
     router.push(`/recipe/${recipeId}?week=${weekNumber}`);
   };
 
