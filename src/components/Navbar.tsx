@@ -1,9 +1,31 @@
 "use client";
 
+import {
+  navBrandTextClassName,
+  navContainerClassName,
+  navDesktopLinkClassName,
+  navLogoIconBoxClassName,
+  navLogoIconClassName,
+  navLogoLinkClassName,
+  navLogoutButtonClassName,
+  navMobileMenuPanelClassName,
+  navMobileMenuToggleClassName,
+  navMobileNavLinkClassName,
+  navRowClassName,
+  navShellClassName,
+} from "@/components/navStyles";
 import { Button } from "@/components/ui/button";
 import { actions, useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { BarChart3, Calendar, ChefHat, Settings, User } from "lucide-react";
+import {
+  BarChart3,
+  Calendar,
+  ChefHat,
+  Menu,
+  Settings,
+  User,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -19,6 +41,8 @@ export default function Navbar({
   const { logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const closeMenu = () => setMobileMenuOpen(false);
+
   const navLinks = [
     { href: "/weekly-plan", label: "Weekly Plan", Icon: Calendar },
     { href: "/analytics", label: "Analytics", Icon: BarChart3 },
@@ -27,122 +51,99 @@ export default function Navbar({
   ];
 
   const handleLogout = async () => {
-    // Logout via AuthContext (clears refresh token from localStorage)
+    closeMenu();
     await logout();
-
-    // Reset app state
     dispatch(actions.resetState());
-
-    // Redirect to landing page
     router.push("/");
   };
 
   return (
-    <nav className="w-full bg-gradient-to-r from-orange-100 via-amber-100 to-yellow-100/80 backdrop-blur-md border-b border-[hsl(var(--paprika))]/20 shadow-sm sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
-        <Link
-          href="/weekly-plan"
-          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-        >
-          <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center shadow-warm">
-            <ChefHat className="w-6 h-6 text-primary" />
-          </div>
-          <span className="text-xl font-bold text-[hsl(var(--paprika))] tracking-tight">
-            ChefPath
-          </span>
-        </Link>
-
-        {/* Desktop Menu */}
-        <div className="hidden md:flex gap-2 items-center">
-          {!showMinimal &&
-            navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-all duration-200 ${
-                  pathname.startsWith(link.href)
-                    ? "bg-[hsl(var(--paprika))]/10 text-[hsl(var(--paprika))] font-semibold"
-                    : "text-gray-600 hover:bg-amber-100/60 hover:text-[hsl(var(--paprika))]"
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          {!showMinimal && (
-            <Button
-              variant="outline"
-              onClick={handleLogout}
-              size="sm"
-              className="border-2 border-[hsl(var(--paprika))]/40 text-[hsl(var(--paprika))] hover:bg-[hsl(var(--paprika))] hover:text-white hover:border-[hsl(var(--paprika))] transition-all duration-200 font-semibold"
-            >
-              Logout
-            </Button>
-          )}
-        </div>
-
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-2 rounded-lg hover:bg-amber-100/60 transition-colors"
-          aria-label="Toggle menu"
-        >
-          <svg
-            className="w-6 h-6 text-[hsl(var(--paprika))]"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+    <nav className={navShellClassName}>
+      <div className={navContainerClassName}>
+        <div className={navRowClassName}>
+          <Link
+            href="/weekly-plan"
+            className={navLogoLinkClassName}
+            onClick={closeMenu}
           >
-            {mobileMenuOpen ? (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            ) : (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            )}
-          </svg>
-        </button>
-      </div>
+            <div className={navLogoIconBoxClassName}>
+              <ChefHat className={navLogoIconClassName} />
+            </div>
+            <span className={navBrandTextClassName}>ChefPath</span>
+          </Link>
 
-      {/* Mobile Menu Dropdown */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-[hsl(var(--paprika))]/20 bg-white/95 backdrop-blur-md">
-          <div className="px-4 py-2 space-y-1">
+          {/* Desktop */}
+          <div className="hidden md:flex gap-1 lg:gap-2 items-center shrink-0">
             {!showMinimal &&
               navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-2 w-full text-left px-3 py-2 rounded-lg transition-all duration-200 ${
+                  className={navDesktopLinkClassName(
                     pathname.startsWith(link.href)
-                      ? "bg-[hsl(var(--paprika))]/10 text-[hsl(var(--paprika))] font-semibold"
-                      : "text-gray-600 hover:bg-amber-100/60 hover:text-[hsl(var(--paprika))]"
-                  }`}
+                  )}
                 >
-                  <link.Icon className="w-4 h-4" />
-                  <span>{link.label}</span>
+                  {link.label}
                 </Link>
               ))}
             {!showMinimal && (
               <Button
                 variant="outline"
                 onClick={handleLogout}
-                className="w-full border-2 border-[hsl(var(--paprika))]/40 text-[hsl(var(--paprika))] hover:bg-[hsl(var(--paprika))] hover:text-white hover:border-[hsl(var(--paprika))] transition-all duration-200 font-semibold mt-2"
+                size="sm"
+                className={navLogoutButtonClassName}
               >
                 Logout
               </Button>
             )}
           </div>
+
+          {/* Mobile toggle */}
+          {!showMinimal && (
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              className={`md:hidden ${navMobileMenuToggleClassName}`}
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? (
+                <X className="w-5 h-5 text-[hsl(var(--paprika))]" />
+              ) : (
+                <Menu className="w-5 h-5 text-[hsl(var(--paprika))]" />
+              )}
+            </button>
+          )}
         </div>
-      )}
+
+        {/* Mobile menu */}
+        {mobileMenuOpen && !showMinimal && (
+          <div className={navMobileMenuPanelClassName}>
+            <div className="flex flex-col gap-2 pt-3">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={closeMenu}
+                  className={navMobileNavLinkClassName(
+                    pathname.startsWith(link.href)
+                  )}
+                >
+                  <link.Icon className="w-4 h-4 shrink-0" />
+                  <span>{link.label}</span>
+                </Link>
+              ))}
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className={`${navLogoutButtonClassName} w-full h-11 mt-1`}
+              >
+                Logout
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </nav>
   );
 }
