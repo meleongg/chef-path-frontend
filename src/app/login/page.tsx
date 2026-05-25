@@ -1,10 +1,12 @@
 "use client";
 
+import LandingNavbar from "@/components/LandingNavbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { ChefHat } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -22,7 +24,6 @@ export default function LoginPage() {
     const result = await login({ email, password });
 
     if (result.success) {
-      // Navigate to weekly-plan - AuthGuard will redirect to onboarding if needed
       router.push("/weekly-plan");
     } else {
       setError(result.error || "Login failed. Please try again.");
@@ -30,71 +31,83 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[hsl(var(--paprika))]/10 via-[hsl(var(--sage))]/10 to-[hsl(var(--turmeric))]/10">
-      <Card className="w-full max-w-md shadow-cozy border-2 border-[hsl(var(--paprika))] bg-white/90">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-primary text-center">
-            Login to ChefPath
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-6" onSubmit={handleLogin}>
-            <div>
-              <Label htmlFor="email">
-                Email <span className="text-red-600">*</span>
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="mt-1"
-                autoComplete="email"
-              />
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-amber-50 via-orange-50/50 to-[hsl(var(--turmeric))]/20 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--paprika))_0%,transparent_25%),radial-gradient(circle_at_70%_80%,hsl(var(--turmeric))_0%,transparent_25%),radial-gradient(circle_at_40%_60%,hsl(var(--sage))_0%,transparent_20%)] opacity-8" />
+
+      <LandingNavbar />
+
+      <main className="relative flex-1 flex items-center justify-center p-4 py-10">
+        <Card className="w-full max-w-md shadow-cozy border-2 border-[hsl(var(--paprika))]/40 bg-white/95 backdrop-blur-sm">
+          <CardHeader className="text-center space-y-3">
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-br from-[hsl(var(--paprika))]/15 to-[hsl(var(--turmeric))]/20 flex items-center justify-center">
+              <ChefHat className="w-7 h-7 text-[hsl(var(--paprika))]" />
             </div>
-            <div>
-              <Label htmlFor="password">
-                Password <span className="text-red-600">*</span>
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="mt-1"
-                autoComplete="current-password"
-              />
-            </div>
-            {error && (
-              <div className="text-red-600 text-sm font-medium text-center">
-                {error}
+            <CardTitle className="text-2xl font-bold text-primary">
+              Welcome back!
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Log in to pick up where you left off.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-6" onSubmit={handleLogin}>
+              <div>
+                <Label htmlFor="email">
+                  Email <span className="text-red-600">*</span>
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="mt-1"
+                  autoComplete="email"
+                />
               </div>
-            )}
+              <div>
+                <Label htmlFor="password">
+                  Password <span className="text-red-600">*</span>
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="mt-1"
+                  autoComplete="current-password"
+                />
+              </div>
+              {error && (
+                <div className="text-red-600 text-sm font-medium text-center">
+                  {error}
+                </div>
+              )}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-lg hover:shadow-xl transition-all"
+              >
+                {isLoading ? "Logging in..." : "Login"}
+              </Button>
+            </form>
+          </CardContent>
+          <div className="text-center pb-6 -mt-2 text-sm">
+            <span className="text-muted-foreground">
+              Don&apos;t have an account?
+            </span>
             <Button
-              type="submit"
-              className="w-full bg-[hsl(var(--sage))] text-primary font-semibold border border-[hsl(var(--paprika))] shadow transition-colors duration-200 hover:bg-[hsl(var(--sage))]/40 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--paprika))]"
-              disabled={isLoading}
+              variant="link"
+              className="ml-1 text-[hsl(var(--paprika))] font-medium underline-offset-2 hover:underline"
+              onClick={() => router.push("/register")}
+              aria-label="Go to Register"
             >
-              {isLoading ? "Logging in..." : "Login"}
+              Register
             </Button>
-          </form>
-        </CardContent>
-        <div className="text-center mt-4">
-          <span className="text-muted-foreground">
-            Don&apos;t have an account?
-          </span>
-          <Button
-            variant="link"
-            className="ml-2 text-primary underline"
-            onClick={() => router.push("/register")}
-            aria-label="Go to Register"
-          >
-            Register
-          </Button>
-        </div>
-      </Card>
+          </div>
+        </Card>
+      </main>
     </div>
   );
 }
