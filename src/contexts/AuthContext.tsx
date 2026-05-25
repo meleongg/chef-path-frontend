@@ -410,8 +410,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         return { success: true };
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Login failed";
+        // Fetch throws on network errors (incl. CORS preflight failures);
+        // surface a user-friendly message instead of raw "Failed to fetch".
+        const isTypeError = error instanceof TypeError;
+        const errorMessage = isTypeError
+          ? "Can't reach the server. Please check your connection and try again."
+          : error instanceof Error
+            ? error.message
+            : "Login failed";
         setState((prev) => ({
           ...prev,
           isLoading: false,
@@ -445,13 +451,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
 
         if (!response.ok) {
-          await response.text();
+          // Try to surface FastAPI/Pydantic validation messages so users see
+          // the real reason (e.g. password policy) instead of a generic error.
+          const fallback =
+            response.status === 0
+              ? "Network error. Please check your connection and try again."
+              : "Registration failed";
+          let serverMessage = fallback;
+          try {
+            const body = (await response.json()) as unknown;
+            if (body && typeof body === "object") {
+              const b = body as {
+                detail?:
+                  | string
+                  | Array<{ msg?: string; loc?: Array<string | number> }>;
+                message?: string;
+              };
+              if (typeof b.detail === "string") {
+                serverMessage = b.detail;
+              } else if (Array.isArray(b.detail) && b.detail.length > 0) {
+                serverMessage =
+                  b.detail
+                    .map((d) => d.msg)
+                    .filter(Boolean)
+                    .join("; ") || fallback;
+              } else if (typeof b.message === "string") {
+                serverMessage = b.message;
+              }
+            }
+          } catch {
+            // Non-JSON response (e.g. CORS preflight failure leaves empty body)
+          }
           setState((prev) => ({
             ...prev,
             isLoading: false,
-            error: "Registration failed",
+            error: serverMessage,
           }));
-          return { success: false, error: "Registration failed" };
+          return { success: false, error: serverMessage };
         }
 
         const responseData = await response.json();
@@ -489,8 +525,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         return { success: true };
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Registration failed";
+        const isTypeError = error instanceof TypeError;
+        const errorMessage = isTypeError
+          ? "Can't reach the server. Please check your connection and try again."
+          : error instanceof Error
+            ? error.message
+            : "Registration failed";
         setState((prev) => ({
           ...prev,
           isLoading: false,

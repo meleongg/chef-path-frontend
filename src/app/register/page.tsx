@@ -1,12 +1,14 @@
 "use client";
 
 import LandingNavbar from "@/components/LandingNavbar";
+import PasswordRequirements from "@/components/PasswordRequirements";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { Sparkles } from "lucide-react";
+import { evaluatePassword } from "@/lib/passwordPolicy";
+import { Eye, EyeOff, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -16,18 +18,34 @@ export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
   const router = useRouter();
   const { register, isLoading } = useAuth();
+
+  const { isValid: isPasswordValid } = evaluatePassword(password);
+  const canSubmit =
+    isPasswordValid &&
+    email.trim().length > 0 &&
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
+    !isLoading;
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setPasswordTouched(true);
+
+    if (!isPasswordValid) {
+      setError("Please choose a password that meets all the requirements.");
+      return;
+    }
 
     const result = await register({
-      email,
+      email: email.trim(),
       password,
-      first_name: firstName,
-      last_name: lastName,
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
     });
 
     if (result.success) {
@@ -107,31 +125,55 @@ export default function RegisterPage() {
                 <Label htmlFor="password">
                   Password <span className="text-red-600">*</span>
                 </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="mt-1"
-                  autoComplete="new-password"
-                />
+                <div className="relative mt-1">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onBlur={() => setPasswordTouched(true)}
+                    required
+                    minLength={8}
+                    maxLength={128}
+                    className="pr-10"
+                    autoComplete="new-password"
+                    aria-describedby="password-requirements"
+                    aria-invalid={passwordTouched && !isPasswordValid}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((s) => !s)}
+                    className="absolute inset-y-0 right-2 flex items-center text-muted-foreground hover:text-[hsl(var(--paprika))]"
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+                <div id="password-requirements">
+                  <PasswordRequirements value={password} />
+                </div>
               </div>
               {error && (
                 <div className="text-red-600 text-sm font-medium text-center">
-                  {error === "Registration failed." &&
+                  {error === "Registration failed" &&
                     "Registration failed. Please check your details and try again."}
                   {error === "Invalid response from server." &&
                     "Something went wrong. Please try again later."}
-                  {error !== "Registration failed." &&
+                  {error !== "Registration failed" &&
                     error !== "Invalid response from server." &&
                     error}
                 </div>
               )}
               <Button
                 type="submit"
-                disabled={isLoading}
-                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-lg hover:shadow-xl transition-all"
+                disabled={!canSubmit}
+                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-[hsl(var(--paprika))] to-orange-600 hover:from-orange-600 hover:to-[hsl(var(--paprika))] text-white shadow-lg hover:shadow-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Registering..." : "Create account"}
               </Button>
